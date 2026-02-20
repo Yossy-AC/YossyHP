@@ -100,7 +100,7 @@
         }
 
         const data = await res.json();
-        resultContent.innerHTML = renderMarkdown(data.result);
+        resultContent.innerHTML = renderMarkdown(data.correction);
         resultArea.hidden = false;
         resultArea.scrollIntoView({ behavior: 'smooth' });
 
