@@ -100,7 +100,11 @@
         }
 
         const data = await res.json();
-        resultContent.innerHTML = renderMarkdown(data.correction);
+        const correction = data.correction;
+        if (!correction) {
+          throw new Error('Workerからの応答に添削結果がありません。\n' + JSON.stringify(data));
+        }
+        resultContent.innerHTML = renderMarkdown(correction);
         resultArea.hidden = false;
         resultArea.scrollIntoView({ behavior: 'smooth' });
 
@@ -123,6 +127,7 @@
     }
 
     function renderMarkdown(text) {
+      if (typeof text !== 'string') return '<p>（添削結果を取得できませんでした）</p>';
       const lines = text.split('\n');
       let html   = '';
       let inList = false;
