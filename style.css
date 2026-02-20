@@ -816,6 +816,45 @@ footer {
 /* ---- Responsive ---- */
 
 @media (max-width: 600px) {
+  header {
+    padding: 0.75rem 1rem;
+  }
+
+  .header-inner {
+    gap: 0.5rem;
+  }
+
+  .logo {
+    font-size: 1.75rem;
+  }
+
+  header h1 {
+    font-size: 0.95rem;
+  }
+
+  .tagline {
+    font-size: 0.65rem;
+  }
+
+  .site-nav {
+    padding: 0 0.5rem;
+  }
+
+  .site-nav ul {
+    gap: 0;
+  }
+
+  .site-nav a {
+    font-size: 1rem;
+    padding: 0.5rem 0.4rem;
+    overflow: hidden;
+    max-width: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
   .file-table th:nth-child(2),
   .file-table td:nth-child(2),
   .file-table th:nth-child(3),
