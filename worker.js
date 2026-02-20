@@ -97,17 +97,17 @@ const SYSTEM_PROMPT = `## 役割
 * 減点箇所は表形式にしてもよい。
 * 解答例中の修正・改善箇所には太字を用いて視認性を高める。`;
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
 export default {
   async fetch(request, env) {
     // CORS プリフライト対応
     if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-        },
-      });
+      return new Response(null, { headers: CORS_HEADERS });
     }
 
     if (request.method !== 'POST') {
@@ -121,7 +121,7 @@ export default {
     } catch {
       return new Response(JSON.stringify({ error: 'リクエストが不正です' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
       });
     }
 
@@ -134,12 +134,23 @@ export default {
       headers: {
         'x-api-key': env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
+        // Prompt Caching を有効化
+        'anthropic-beta': 'prompt-caching-2024-07-31',
         'content-type': 'application/json',
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 6000,
-        system: SYSTEM_PROMPT,
+        // ストリーミングを有効化
+        stream: true,
+        // Prompt Caching: system prompt を配列形式にして cache_control を付与
+        system: [
+          {
+            type: 'text',
+            text: SYSTEM_PROMPT,
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
         messages: [{ role: 'user', content: userMessage }],
       }),
     });
@@ -148,17 +159,16 @@ export default {
       const err = await apiRes.text();
       return new Response(JSON.stringify({ error: `Claude APIエラー: ${err}` }), {
         status: 502,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
       });
     }
 
-    const data = await apiRes.json();
-    const correction = data.content?.[0]?.text ?? '（添削結果を取得できませんでした）';
-
-    return new Response(JSON.stringify({ correction }), {
+    // Claude の SSE ストリームをそのままクライアントへ転送
+    return new Response(apiRes.body, {
       headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        ...CORS_HEADERS,
       },
     });
   },

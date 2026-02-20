@@ -399,6 +399,8 @@ main {
   box-shadow: var(--shadow);
   padding: 2rem;
   margin-top: 1.5rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .result-title {
@@ -465,5 +467,38 @@ footer {
   .file-table th:nth-child(3),
   .file-table td:nth-child(3) {
     display: none;
+  }
+}
+
+/* ---- Print ---- */
+
+@media print {
+  /* 背景色を印刷しない環境でも文字が見えるようにする */
+  * {
+    color: #000 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  header,
+  nav.site-nav {
+    border-bottom: 1px solid #000;
+  }
+
+  /* 添削結果は全て印刷できるよう高さ制限を解除 */
+  .result-area {
+    max-height: none !important;
+    overflow: visible !important;
+    border: 1px solid #ccc;
+  }
+
+  /* 送信ボタン・フォームは印刷不要 */
+  .btn-submit,
+  .essay-card {
+    display: none !important;
+  }
+
+  footer {
+    border-top: 1px solid #000;
   }
 }
