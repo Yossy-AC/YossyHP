@@ -49,19 +49,28 @@
 
   <main>
     <section class="essay-section">
-      <h2>ふつうの英作文 AI添削</h2>
+      <h2>英作文 AI添削</h2>
       <p class="section-desc">添削の「語数」は信じたらあかんﾃﾞ 「～は必須！」も信じていいかわからんﾃﾞ　図表はﾑﾘやﾃﾞ</p>
 
-      <div class="essay-card">
+      <!-- タブナビゲーション -->
+      <div class="tab-nav">
+        <button class="tab-btn tab-btn--active" data-tab="free-essay">ふつうの英作文</button>
+        <button class="tab-btn" data-tab="translation">和文英訳</button>
+        <button class="tab-btn" data-tab="diagram-essay">図表付き英作文</button>
+      </div>
+
+      <!-- タブ1: ふつうの英作文 -->
+      <div class="essay-card tab-content tab-content--active" id="free-essay">
+        <h3 class="essay-subheading">ふつうの英作文 AI添削</h3>
         <div class="form-group">
-          <label for="question">問題文（テーマ・指示文）</label>
-          <textarea id="question" class="essay-textarea" rows="4"
+          <label for="question-free">問題文（テーマ・指示文）</label>
+          <textarea id="question-free" class="essay-textarea" rows="4"
             placeholder="例: Describe the advantages of studying abroad in about 100 words."></textarea>
         </div>
 
         <div class="form-group">
-          <label for="answer">あなたの作品</label>
-          <textarea id="answer" class="essay-textarea essay-textarea--answer" rows="10"
+          <label for="answer-free">あなたの作品</label>
+          <textarea id="answer-free" class="essay-textarea essay-textarea--answer" rows="10"
             placeholder="英作文をここに入力してください…"></textarea>
         </div>
 
@@ -102,7 +111,60 @@
           </div>
         </div>
 
-        <button id="submit-btn" class="btn-submit" onclick="submitEssay()">✏️ 添削する</button>
+        <button class="btn-submit" onclick="submitEssay('free-essay')">✏️ 添削する</button>
+      </div>
+
+      <!-- タブ2: 和文英訳 -->
+      <div class="essay-card tab-content" id="translation">
+        <h3 class="essay-subheading">和文英訳 AI添削</h3>
+        <div class="form-group">
+          <label for="japanese-text">日本語テキスト</label>
+          <textarea id="japanese-text" class="essay-textarea" rows="6"
+            placeholder="日本語を入力してください…"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="answer-translation">あなたの英訳</label>
+          <textarea id="answer-translation" class="essay-textarea essay-textarea--answer" rows="10"
+            placeholder="英訳をここに入力してください…"></textarea>
+        </div>
+
+        <button class="btn-submit" onclick="submitEssay('translation')">✏️ 添削する</button>
+      </div>
+
+      <!-- タブ3: 図表付き英作文 -->
+      <div class="essay-card tab-content" id="diagram-essay">
+        <h3 class="essay-subheading">図表付き英作文 AI添削</h3>
+        <div class="form-group">
+          <label for="question-diagram">問題文（テーマ・指示文）</label>
+          <textarea id="question-diagram" class="essay-textarea" rows="4"
+            placeholder="例: Describe the chart below in about 150 words."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="image-upload">図表画像をアップロード</label>
+          <div class="image-upload-area" id="image-upload-area" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+            <input type="file" id="image-upload" accept="image/*" onchange="handleImageSelect(event)" style="display: none;">
+            <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
+            <div class="upload-placeholder">
+              <p>📸 ここに画像をドラッグ&ドロップ</p>
+              <p class="upload-hint">または、下のボタンから選択してください</p>
+            </div>
+            <div id="image-preview" class="image-preview" hidden></div>
+          </div>
+          <div class="upload-buttons">
+            <button class="btn-upload" onclick="document.getElementById('image-upload').click()">📁 ファイルを選択</button>
+            <button class="btn-upload" onclick="document.getElementById('camera-input').click()">📷 カメラで撮影</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="answer-diagram">あなたの作品</label>
+          <textarea id="answer-diagram" class="essay-textarea essay-textarea--answer" rows="10"
+            placeholder="英作文をここに入力してください…"></textarea>
+        </div>
+
+        <button class="btn-submit" onclick="submitEssay('diagram-essay')">✏️ 添削する</button>
       </div>
 
       <div id="result-area" class="result-area" hidden>
@@ -133,6 +195,9 @@
     const WORKER_URL = 'https://essay-proxy.yoshida-tom-ac.workers.dev';
     const TYPES_KEY = 'essay_types_selection';
     const CUSTOM_KEY = 'essay_custom_instruction';
+
+    // グローバル変数：アップロードされた画像
+    let uploadedImageBase64 = null;
 
     // localStorage に保存されたタイプを復元
     function loadSavedTypes() {
@@ -188,8 +253,110 @@
       toggleText.textContent = section.hidden ? '▶ F：解答例を詳しく指定する' : '▼ F：解答例を詳しく指定する';
     }
 
+    // ===================================================
+    // タブ切り替え機能
+    // ===================================================
+    function switchTab(tabId) {
+      // すべてのタブコンテンツを非表示
+      document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.remove('tab-content--active');
+      });
+
+      // すべてのタブボタンを非アクティブ
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('tab-btn--active');
+      });
+
+      // 選択されたタブを表示
+      document.getElementById(tabId).classList.add('tab-content--active');
+
+      // 選択されたタブボタンをアクティブ
+      document.querySelector(`[data-tab="${tabId}"]`).classList.add('tab-btn--active');
+    }
+
+    // ===================================================
+    // 画像アップロード機能
+    // ===================================================
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('image-upload-area').classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('image-upload-area').classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('image-upload-area').classList.remove('drag-over');
+
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleImageSelect({ target: { files } });
+      }
+    }
+
+    function handleImageSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // ファイル形式チェック
+      if (!file.type.startsWith('image/')) {
+        alert('画像ファイルを選択してください。');
+        return;
+      }
+
+      // ファイルサイズチェック（10MBまで）
+      if (file.size > 10 * 1024 * 1024) {
+        alert('ファイルサイズは10MB以下にしてください。');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        uploadedImageBase64 = event.target.result;
+        displayImagePreview(file.name);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function displayImagePreview(fileName) {
+      const preview = document.getElementById('image-preview');
+      const placeholder = document.querySelector('.upload-placeholder');
+
+      placeholder.style.display = 'none';
+      preview.innerHTML = `
+        <div class="image-preview-item">
+          <img src="${uploadedImageBase64}" alt="プレビュー">
+          <p class="image-preview-name">${fileName}</p>
+          <button class="btn-remove-image" onclick="removeImage()">削除</button>
+        </div>
+      `;
+      preview.hidden = false;
+    }
+
+    function removeImage() {
+      uploadedImageBase64 = null;
+      document.getElementById('image-upload').value = '';
+      document.getElementById('camera-input').value = '';
+      document.getElementById('image-preview').innerHTML = '';
+      document.getElementById('image-preview').hidden = true;
+      document.querySelector('.upload-placeholder').style.display = 'block';
+    }
+
     // チェックボックス変更時に自動保存
     document.addEventListener('DOMContentLoaded', function() {
+      // タブボタンにイベントリスナー追加
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          switchTab(this.dataset.tab);
+        });
+      });
+
       restoreTypes();
       document.querySelectorAll('input[name="types"]').forEach(cb => {
         cb.addEventListener('change', saveSelectedTypes);
@@ -200,13 +367,66 @@
       document.getElementById('custom-instruction').addEventListener('blur', saveCustomInstruction);
     });
 
-    async function submitEssay() {
-      const question = document.getElementById('question').value.trim();
-      const answer   = document.getElementById('answer').value.trim();
+    async function submitEssay(tabType) {
+      let payload = {};
 
-      if (!answer) {
-        alert('解答を入力してください。');
-        return;
+      // タイプに応じてペイロードを構築
+      if (tabType === 'free-essay') {
+        const question = document.getElementById('question-free').value.trim();
+        const answer = document.getElementById('answer-free').value.trim();
+
+        if (!answer) {
+          alert('解答を入力してください。');
+          return;
+        }
+
+        const checkboxes = document.querySelectorAll('input[name="types"]:checked');
+        const types = Array.from(checkboxes).map(cb => cb.value);
+        const customInstruction = document.getElementById('custom-instruction').value.trim();
+
+        payload = {
+          essayType: 'free-essay',
+          question,
+          answer,
+          types,
+          customInstruction
+        };
+
+      } else if (tabType === 'translation') {
+        const japaneseText = document.getElementById('japanese-text').value.trim();
+        const answer = document.getElementById('answer-translation').value.trim();
+
+        if (!japaneseText || !answer) {
+          alert('日本語と英訳の両方を入力してください。');
+          return;
+        }
+
+        payload = {
+          essayType: 'translation',
+          japaneseText,
+          answer
+        };
+
+      } else if (tabType === 'diagram-essay') {
+        const question = document.getElementById('question-diagram').value.trim();
+        const answer = document.getElementById('answer-diagram').value.trim();
+
+        if (!answer) {
+          alert('解答を入力してください。');
+          return;
+        }
+
+        if (!uploadedImageBase64) {
+          alert('図表画像をアップロードしてください。');
+          return;
+        }
+
+        payload = {
+          essayType: 'diagram-essay',
+          question,
+          answer,
+          imageBase64: uploadedImageBase64
+        };
       }
 
       if (WORKER_URL.includes('YOUR_WORKER_NAME')) {
@@ -214,28 +434,28 @@
         return;
       }
 
-      const btn = document.getElementById('submit-btn');
+      // タイプに応じてボタンを特定
+      const allButtons = document.querySelectorAll('.btn-submit');
+      let btn = allButtons[Array.from(allButtons).length - 1]; // 最後のボタンを使う（複雑なので改善の余地あり）
+      const activeTab = document.querySelector('.tab-content--active');
+      btn = activeTab.querySelector('.btn-submit');
+
       btn.disabled = true;
       btn.textContent = '添削中…';
 
-      const resultArea    = document.getElementById('result-area');
+      const resultArea = document.getElementById('result-area');
       const resultContent = document.getElementById('result-content');
       resultContent.innerHTML = '';
       resultArea.hidden = false;
       resultArea.scrollIntoView({ behavior: 'smooth' });
 
       try {
-        // 選択されたタイプと custom instruction を取得
-        const checkboxes = document.querySelectorAll('input[name="types"]:checked');
-        const types = Array.from(checkboxes).map(cb => cb.value);
-        const customInstruction = document.getElementById('custom-instruction').value.trim();
-
-        console.log('[Essay] Sending request with types:', types, 'customInstruction:', customInstruction);
+        console.log('[Essay] Sending request:', payload);
 
         const res = await fetch(WORKER_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question, answer, types, customInstruction }),
+          body: JSON.stringify(payload),
         });
 
         console.log('[Essay] Response status:', res.status, 'Content-Type:', res.headers.get('content-type'));
@@ -247,9 +467,9 @@
         }
 
         // SSE ストリームを逐次読み取り、テキストが届くたびに描画する
-        const reader  = res.body.getReader();
+        const reader = res.body.getReader();
         const decoder = new TextDecoder();
-        let buffer   = '';
+        let buffer = '';
         let fullText = '';
         let eventCount = 0;
 
@@ -262,7 +482,7 @@
 
           buffer += decoder.decode(value, { stream: true });
           const lines = buffer.split('\n');
-          buffer = lines.pop(); // 最後の不完全な行は次回に持ち越す
+          buffer = lines.pop();
 
           for (const line of lines) {
             if (!line.startsWith('data: ')) continue;
@@ -288,7 +508,7 @@
           resultContent.innerHTML = '<p>エラー：サーバーから添削結果を受け取れませんでした。ブラウザのコンソールを確認してください。</p>';
           console.error('[Essay] No text received. Check Worker logs and API response.');
         } else {
-          saveToHistory(question, answer, fullText);
+          saveToHistory(tabType, payload, fullText);
         }
 
       } catch (err) {
@@ -350,9 +570,16 @@
       catch { return []; }
     }
 
-    function saveToHistory(question, answer, correction) {
+    function saveToHistory(essayType, payload, correction) {
       const list = loadHistories();
-      list.unshift({ id: Date.now(), date: new Date().toISOString(), question, answer, correction });
+      const historyItem = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        essayType,
+        payload,
+        correction
+      };
+      list.unshift(historyItem);
       if (list.length > MAX_HIST) list.length = MAX_HIST;
       localStorage.setItem(HIST_KEY, JSON.stringify(list));
       renderHistoryList();
@@ -368,13 +595,36 @@
         const d = new Date(h.date);
         const pad = n => String(n).padStart(2, '0');
         const dateStr = `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        const qPrev = h.question ? escapeHtml(h.question.slice(0, 45)) + (h.question.length > 45 ? '…' : '') : '（問題文なし）';
+
+        // タイプに応じてプレビューを生成
+        let preview = '（情報なし）';
+        let answerPreview = '（情報なし）';
+
+        if (h.essayType === 'free-essay') {
+          preview = h.payload.question ? escapeHtml(h.payload.question.slice(0, 45)) + (h.payload.question.length > 45 ? '…' : '') : '（問題文なし）';
+          answerPreview = h.payload.answer ? escapeHtml(h.payload.answer.slice(0, 80)) + (h.payload.answer.length > 80 ? '…' : '') : '（解答なし）';
+        } else if (h.essayType === 'translation') {
+          preview = h.payload.japaneseText ? escapeHtml(h.payload.japaneseText.slice(0, 45)) + (h.payload.japaneseText.length > 45 ? '…' : '') : '（日本語なし）';
+          answerPreview = h.payload.answer ? escapeHtml(h.payload.answer.slice(0, 80)) + (h.payload.answer.length > 80 ? '…' : '') : '（英訳なし）';
+        } else if (h.essayType === 'diagram-essay') {
+          preview = h.payload.question ? escapeHtml(h.payload.question.slice(0, 45)) + (h.payload.question.length > 45 ? '…' : '') : '（問題文なし）';
+          answerPreview = h.payload.answer ? escapeHtml(h.payload.answer.slice(0, 80)) + (h.payload.answer.length > 80 ? '…' : '') : '（解答なし）';
+        }
+
+        // タイプラベル
+        const typeLabel = {
+          'free-essay': 'ふつうの英作文',
+          'translation': '和文英訳',
+          'diagram-essay': '図表付き英作文'
+        }[h.essayType] || 'その他';
+
         return `
           <div class="history-item" id="hist-${h.id}">
             <div class="history-item-row">
               <div class="history-item-meta">
                 <span class="history-date">${dateStr}</span>
-                <span class="history-preview">${qPrev}</span>
+                <span class="history-type-badge">${typeLabel}</span>
+                <span class="history-preview">${preview}</span>
               </div>
               <div class="history-item-actions">
                 <button class="btn-hist-view" onclick="toggleHistoryItem(${h.id})">表示</button>
@@ -382,7 +632,7 @@
               </div>
             </div>
             <div class="history-item-body" id="hist-body-${h.id}" hidden>
-              <p class="history-answer-preview"><strong>解答：</strong>${escapeHtml(h.answer.slice(0, 80))}${h.answer.length > 80 ? '…' : ''}</p>
+              <p class="history-answer-preview"><strong>解答：</strong>${answerPreview}</p>
               <div class="result-content">${renderMarkdown(h.correction)}</div>
             </div>
           </div>`;
