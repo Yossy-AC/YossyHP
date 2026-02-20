@@ -168,7 +168,9 @@ export default {
     try {
       ({ question = '', answer, types = [], customInstruction = '' } = await request.json());
       if (!answer) throw new Error('answer is required');
-    } catch {
+      console.log('[Worker] Request received. Types:', types, 'HasCustomInstruction:', !!customInstruction);
+    } catch (e) {
+      console.error('[Worker] Request parse error:', e.message);
       return new Response(JSON.stringify({ error: 'リクエストが不正です' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
@@ -177,6 +179,10 @@ export default {
     const userMessage = question
       ? `【問題文】\n${question}\n\n【あなたの解答】\n${answer}`
       : `【あなたの解答】\n${answer}`;
+
+    const systemPrompt = generateSystemPrompt(types, customInstruction);
+    console.log('[Worker] System prompt generated. Length:', systemPrompt.length);
+
     const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -189,12 +195,16 @@ export default {
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: 8192,
         stream: true,
-        system: generateSystemPrompt(types, customInstruction),
+        system: systemPrompt,
         messages: [{ role: 'user', content: userMessage }],
       }),
     });
+
+    console.log('[Worker] API response status:', apiRes.status);
+
     if (!apiRes.ok) {
       const err = await apiRes.text();
+      console.error('[Worker] API error:', err);
       return new Response(JSON.stringify({ error: `Claude APIエラー: ${err}` }), {
         status: 502,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
