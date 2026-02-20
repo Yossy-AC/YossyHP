@@ -399,8 +399,8 @@ main {
   box-shadow: var(--shadow);
   padding: 2rem;
   margin-top: 1.5rem;
-  max-height: 60vh;
-  overflow-y: auto;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .result-title {
