@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YossyHP - ペンギンサイト</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <span class="logo">🐧</span>
+      <div>
+        <h1>YossyHP</h1>
+        <p class="tagline">Yossyのペンギンサイト</p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="download-section">
+      <h2>ファイルダウンロード</h2>
+      <p class="section-desc">以下のファイルを自由にダウンロードしてください。</p>
+
+      <table class="file-table">
+        <thead>
+          <tr>
+            <th>ファイル名</th>
+            <th>種類</th>
+            <th>サイズ</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- ===================================================
+               ファイルを追加するときはここにtrを追加してください。
+               例:
+               <tr>
+                 <td><span class="icon icon-pdf">PDF</span> sample.pdf</td>
+                 <td>PDFファイル</td>
+                 <td>1.2 MB</td>
+                 <td><a class="btn-download" href="files/sample.pdf" download>ダウンロード</a></td>
+               </tr>
+               =================================================== -->
+
+          <!--
+          <tr>
+            <td><span class="icon icon-pdf">PDF</span> サンプル資料.pdf</td>
+            <td>PDFファイル</td>
+            <td>500 KB</td>
+            <td><a class="btn-download" href="files/サンプル資料.pdf" download>ダウンロード</a></td>
+          </tr>
+          <tr>
+            <td><span class="icon icon-word">DOC</span> レポート.docx</td>
+            <td>Wordファイル</td>
+            <td>120 KB</td>
+            <td><a class="btn-download" href="files/レポート.docx" download>ダウンロード</a></td>
+          </tr>
+          <tr>
+            <td><span class="icon icon-excel">XLS</span> データ.xlsx</td>
+            <td>Excelファイル</td>
+            <td>80 KB</td>
+            <td><a class="btn-download" href="files/データ.xlsx" download>ダウンロード</a></td>
+          </tr>
+          <tr>
+            <td><span class="icon icon-image">IMG</span> ペンギン.jpg</td>
+            <td>画像ファイル</td>
+            <td>2.1 MB</td>
+            <td><a class="btn-download" href="files/ペンギン.jpg" download>ダウンロード</a></td>
+          </tr>
+          -->
+
+          <tr class="empty-row">
+            <td colspan="4">まだファイルはありません。<code>files/</code> フォルダにファイルを追加してください。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    <p>🐧 YossyHP &copy; Yossy</p>
+  </footer>
+
+</body>
+</html>

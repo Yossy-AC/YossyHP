@@ -1,0 +1,206 @@
+/* ===========================
+   YossyHP - ペンギンサイト
+   =========================== */
+
+:root {
+  --color-bg: #f0f4f8;
+  --color-surface: #ffffff;
+  --color-header-bg: #1a2e44;
+  --color-header-text: #ffffff;
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-row-hover: #f8fafc;
+  --color-pdf: #dc2626;
+  --color-word: #2563eb;
+  --color-excel: #16a34a;
+  --color-image: #9333ea;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Header ---- */
+
+header {
+  background: var(--color-header-bg);
+  color: var(--color-header-text);
+  padding: 1.25rem 1.5rem;
+}
+
+.header-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.tagline {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin-top: 0.2rem;
+}
+
+/* ---- Main ---- */
+
+main {
+  flex: 1;
+  max-width: 900px;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+/* ---- Download Section ---- */
+
+.download-section h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.section-desc {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ---- File Table ---- */
+
+.file-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.file-table thead tr {
+  background: var(--color-header-bg);
+  color: var(--color-header-text);
+}
+
+.file-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.file-table td {
+  padding: 0.875rem 1rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.file-table tbody tr:hover {
+  background: var(--color-row-hover);
+}
+
+/* ---- File Type Icons ---- */
+
+.icon {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  color: white;
+  letter-spacing: 0.03em;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+.icon-pdf   { background: var(--color-pdf); }
+.icon-word  { background: var(--color-word); }
+.icon-excel { background: var(--color-excel); }
+.icon-image { background: var(--color-image); }
+
+/* ---- Download Button ---- */
+
+.btn-download {
+  display: inline-block;
+  background: var(--color-accent);
+  color: white;
+  padding: 0.4rem 0.9rem;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.btn-download:hover {
+  background: var(--color-accent-hover);
+}
+
+/* ---- Empty State ---- */
+
+.empty-row td {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 2.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.empty-row code {
+  background: #f1f5f9;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.85em;
+}
+
+/* ---- Footer ---- */
+
+footer {
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 600px) {
+  .file-table th:nth-child(2),
+  .file-table td:nth-child(2),
+  .file-table th:nth-child(3),
+  .file-table td:nth-child(3) {
+    display: none;
+  }
+}
