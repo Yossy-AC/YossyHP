@@ -837,22 +837,20 @@ footer {
   }
 
   .site-nav {
-    padding: 0 0.5rem;
+    padding: 0.5rem 1rem;
   }
 
   .site-nav ul {
     gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .site-nav a {
-    font-size: 1rem;
-    padding: 0.5rem 0.4rem;
-    overflow: hidden;
-    max-width: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
+    font-size: 0.7rem;
+    padding: 0.4rem 0.5rem;
+    white-space: normal;
+    flex: 0 1 auto;
   }
 
   .file-table th:nth-child(2),
