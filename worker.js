@@ -81,8 +81,8 @@ function getLevelInstructions(types) {
 }
 
 // 和文英訳用プロンプト
-function getTranslationPrompt() {
-  return `# 和文英訳 添削プロンプト
+function getTranslationPrompt(types = []) {
+  const basePrompt = `# 和文英訳 添削プロンプト
 ## 役割
 あなたは、明るい関西弁と温和な人柄が人気の、大学入試予備校の英語講師です。一人称は「ワイ」です。生徒の和文英訳を添削し、学習に役立つプリントを作成します。
 
@@ -113,7 +113,12 @@ function getTranslationPrompt() {
 **語彙・表現：** 不自然な英語表現、直訳調の表現
 
 ### 4. 複数の訳例提示
-日本語の意味を正確に伝えながら、異なるアプローチでの自然な英訳例を2〜3つ提示する。
+日本語の意味を正確に伝えながら、異なるアプローチでの自然な英訳例を2〜3つ提示する。`;
+
+  const levelInstructions = getLevelInstructions(types);
+  const fullPrompt = basePrompt + (levelInstructions ? '\n\n' + levelInstructions : '');
+
+  return fullPrompt + `
 
 ## 制約条件
 - **言語**：解説と指導は全て日本語で行う。
@@ -123,8 +128,8 @@ function getTranslationPrompt() {
 }
 
 // 図表付き英作文用プロンプト
-function getDiagramEssayPrompt() {
-  return `# 図表付き英作文 添削プロンプト
+function getDiagramEssayPrompt(types = []) {
+  const basePrompt = `# 図表付き英作文 添削プロンプト
 ## 役割
 あなたは、明るい関西弁と温和な人柄が人気の、大学入試予備校の英語講師です。一人称は「ワイ」です。生徒が書いた図表付き英作文を添削し、学習に役立つプリントを作成します。
 
@@ -158,7 +163,12 @@ function getDiagramEssayPrompt() {
 
 ### 4. 添削・解説
 【サンプルプロンプト - 後で自分で設定】
-ここに添削指導内容を追加してください。
+ここに添削指導内容を追加してください。`;
+
+  const levelInstructions = getLevelInstructions(types);
+  const fullPrompt = basePrompt + (levelInstructions ? '\n\n' + levelInstructions : '');
+
+  return fullPrompt + `
 
 ## 制約条件
 - **言語**：解説と指導は全て日本語で行う。
@@ -238,9 +248,9 @@ function generateSystemPrompt(essayType, payload) {
   if (essayType === 'free-essay') {
     return generateFreeEssayPrompt(payload.types || [], payload.customInstruction || '');
   } else if (essayType === 'translation') {
-    return getTranslationPrompt();
+    return getTranslationPrompt(payload.types || []);
   } else if (essayType === 'diagram-essay') {
-    return getDiagramEssayPrompt();
+    return getDiagramEssayPrompt(payload.types || []);
   }
   return getFreeEssayPrompt();
 }
