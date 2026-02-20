@@ -129,6 +129,32 @@
             placeholder="英訳をここに入力してください…"></textarea>
         </div>
 
+        <div class="form-group">
+          <label>解答例タイプ（複数選択可）</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="trans-type-A" name="trans-types" value="A" checked>
+              A（原文ベース）
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="trans-type-B" name="trans-types" value="B">
+              B（英検2級）
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="trans-type-C" name="trans-types" value="C">
+              C（英検準1級）
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="trans-type-D" name="trans-types" value="D">
+              D（英検1級）
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="trans-type-E" name="trans-types" value="E">
+              E（別アプローチ版）
+            </label>
+          </div>
+        </div>
+
         <button class="btn-submit" onclick="submitEssay('translation')">✏️ 添削する</button>
       </div>
 
@@ -162,6 +188,32 @@
           <label for="answer-diagram">あなたの作品</label>
           <textarea id="answer-diagram" class="essay-textarea essay-textarea--answer" rows="10"
             placeholder="英作文をここに入力してください…"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>解答例タイプ（複数選択可）</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="diagram-type-A" name="diagram-types" value="A" checked>
+              A（原文ベース）
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="diagram-type-B" name="diagram-types" value="B">
+              B（英検2級）
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="diagram-type-C" name="diagram-types" value="C">
+              C（英検準1級）
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="diagram-type-D" name="diagram-types" value="D">
+              D（英検1級）
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="diagram-type-E" name="diagram-types" value="E">
+              E（別アプローチ版）
+            </label>
+          </div>
         </div>
 
         <button class="btn-submit" onclick="submitEssay('diagram-essay')">✏️ 添削する</button>
@@ -401,10 +453,14 @@
           return;
         }
 
+        const transCheckboxes = document.querySelectorAll('input[name="trans-types"]:checked');
+        const transTypes = Array.from(transCheckboxes).map(cb => cb.value);
+
         payload = {
           essayType: 'translation',
           japaneseText,
-          answer
+          answer,
+          types: transTypes
         };
 
       } else if (tabType === 'diagram-essay') {
@@ -421,11 +477,15 @@
           return;
         }
 
+        const diagramCheckboxes = document.querySelectorAll('input[name="diagram-types"]:checked');
+        const diagramTypes = Array.from(diagramCheckboxes).map(cb => cb.value);
+
         payload = {
           essayType: 'diagram-essay',
           question,
           answer,
-          imageBase64: uploadedImageBase64
+          imageBase64: uploadedImageBase64,
+          types: diagramTypes
         };
       }
 
