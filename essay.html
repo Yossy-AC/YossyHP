@@ -211,14 +211,19 @@
         const types = Array.from(checkboxes).map(cb => cb.value);
         const customInstruction = document.getElementById('custom-instruction').value.trim();
 
+        console.log('[Essay] Sending request with types:', types, 'customInstruction:', customInstruction);
+
         const res = await fetch(WORKER_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question, answer, types, customInstruction }),
         });
 
+        console.log('[Essay] Response status:', res.status, 'Content-Type:', res.headers.get('content-type'));
+
         if (!res.ok) {
           const msg = await res.text();
+          console.error('[Essay] Error response:', msg);
           throw new Error(`サーバーエラー (${res.status}): ${msg}`);
         }
 
@@ -227,10 +232,14 @@
         const decoder = new TextDecoder();
         let buffer   = '';
         let fullText = '';
+        let eventCount = 0;
 
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {
+            console.log('[Essay] Stream complete. Total events:', eventCount, 'Text length:', fullText.length);
+            break;
+          }
 
           buffer += decoder.decode(value, { stream: true });
           const lines = buffer.split('\n');
@@ -242,25 +251,31 @@
             if (!raw) continue;
             try {
               const evt = JSON.parse(raw);
+              console.log('[Essay] Event type:', evt.type);
               if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
                 fullText += evt.delta.text;
+                eventCount++;
                 resultContent.innerHTML = renderMarkdown(fullText);
+              } else if (evt.type === 'message_start' || evt.type === 'message_stop' || evt.type === 'content_block_start') {
+                console.log('[Essay] Metadata event:', evt.type);
               }
-            } catch {
-              // 不完全な JSON は無視
+            } catch (parseErr) {
+              console.warn('[Essay] JSON parse error:', raw.slice(0, 100), parseErr.message);
             }
           }
         }
 
         if (!fullText) {
-          resultContent.innerHTML = '<p>（添削結果を取得できませんでした）</p>';
+          resultContent.innerHTML = '<p>エラー：サーバーから添削結果を受け取れませんでした。ブラウザのコンソールを確認してください。</p>';
+          console.error('[Essay] No text received. Check Worker logs and API response.');
         } else {
           saveToHistory(question, answer, fullText);
         }
 
       } catch (err) {
         resultArea.hidden = true;
-        alert('エラーが発生しました:\n' + err.message);
+        console.error('[Essay] Exception:', err);
+        alert('エラーが発生しました:\n' + err.message + '\n\nブラウザのコンソール（F12）で詳細ログを確認してください。');
       } finally {
         btn.disabled = false;
         btn.textContent = '✏️ 添削する';
