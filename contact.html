@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>お便り - Yossyのペンギンさいと</title>
+  <link rel="stylesheet" href="style.css">
+  <script>if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');</script>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <span class="logo">🐧</span>
+      <div>
+        <h1><a href="index.html" class="site-title-link">Yossyのペンギンさいと</a></h1>
+        <p class="tagline"><a href="https://www.youtube.com/@yossy0116" target="_blank" rel="noopener noreferrer">🎥 Yossyのペンギンちゃんねる</a></p>
+      </div>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" title="ダークモード切り替え" aria-label="ダークモード切り替え">🌙</button>
+  </header>
+
+  <nav class="site-nav">
+    <ul>
+      <li><a href="index.html">🏠 ホーム</a></li>
+      <li><a href="about.html">🐧 自己紹介</a></li>
+      <li><a href="essay.html">✏️ 英作文添削</a></li>
+      <li><a href="contact.html" class="active">📝 お便り</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section class="contact-section">
+      <h2>お便りフォーム</h2>
+      <p class="section-desc">ご質問、ご意見、ご感想などをお聞きします。</p>
+
+      <div class="contact-card">
+        <form id="contact-form">
+          <div class="form-group">
+            <label for="name">お名前 <span class="required">*</span></label>
+            <input type="text" id="name" name="name" class="form-input" placeholder="例：ペンギン太郎" required>
+          </div>
+
+          <div class="form-group">
+            <label for="email">メールアドレス <span class="required">*</span></label>
+            <input type="email" id="email" name="email" class="form-input" placeholder="例：penguin@example.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="school">高校名 <span class="required">*</span></label>
+            <input type="text" id="school" name="school" class="form-input" placeholder="例：ペンギン県立高等学校" required>
+          </div>
+
+          <div class="form-group">
+            <label for="grade">学年 <span class="required">*</span></label>
+            <select id="grade" name="grade" class="form-input" required>
+              <option value="">選択してください</option>
+              <option value="高1">高1</option>
+              <option value="高2">高2</option>
+              <option value="高3">高3</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="university">志望大学 <span class="required">*</span></label>
+            <input type="text" id="university" name="university" class="form-input" placeholder="例：東京ペンギン大学" required>
+          </div>
+
+          <div class="form-group">
+            <label for="subject">件名 <span class="required">*</span></label>
+            <input type="text" id="subject" name="subject" class="form-input" placeholder="例：英作文の質問です" required>
+          </div>
+
+          <div class="form-group">
+            <label for="message">内容 <span class="required">*</span></label>
+            <textarea id="message" name="message" class="form-textarea" rows="8" placeholder="お便りをこちらにご記入ください…" required></textarea>
+          </div>
+
+          <button type="submit" class="btn-submit">📬 送信する</button>
+        </form>
+      </div>
+
+      <div id="success-message" class="success-message" hidden>
+        <div class="success-content">
+          <p>✅ お便りをありがとうございました！</p>
+          <p>ご記入いただいた内容を確認させていただきます。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>🐧 Yossyのペンギンさいと &copy; Yossy</p>
+  </footer>
+
+  <script src="theme.js"></script>
+  <script>
+    document.getElementById('contact-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // フォーム値を取得
+      const formData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        school: document.getElementById('school').value,
+        grade: document.getElementById('grade').value,
+        university: document.getElementById('university').value,
+        subject: document.getElementById('subject').value,
+        message: document.getElementById('message').value,
+        timestamp: new Date().toISOString()
+      };
+
+      // ブラウザコンソールに出力（テスト用）
+      console.log('📬 新しいお便りが届きました:');
+      console.log(formData);
+
+      // フォームを非表示にしてメッセージを表示
+      document.getElementById('contact-form').style.display = 'none';
+      document.getElementById('success-message').hidden = false;
+
+      // ページの上部にスクロール
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+
+</body>
+</html>
