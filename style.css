@@ -56,6 +56,25 @@
   background: rgba(59, 130, 246, 0.06);
 }
 
+[data-theme="dark"] .image-upload-area {
+  background: rgba(59, 130, 246, 0.04);
+  border-color: #334155;
+}
+
+[data-theme="dark"] .image-upload-area.drag-over {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--color-accent);
+}
+
+[data-theme="dark"] .image-preview-item {
+  background: #243044;
+}
+
+[data-theme="dark"] .history-type-badge {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
 /* ---- Theme Toggle Button ---- */
 
 .theme-toggle {
@@ -552,6 +571,189 @@ main {
   margin-bottom: 0.5rem;
 }
 
+.essay-section h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--color-accent);
+}
+
+/* ---- Tab Navigation ---- */
+
+.tab-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.tab-btn {
+  padding: 0.7rem 1.2rem;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: var(--color-accent);
+}
+
+.tab-btn--active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* ---- Tab Content ---- */
+
+.tab-content {
+  display: none;
+}
+
+.tab-content--active {
+  display: block;
+}
+
+.essay-subheading {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+/* ---- Image Upload Area ---- */
+
+.image-upload-area {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  text-align: center;
+  background: rgba(37, 99, 235, 0.02);
+  transition: background 0.15s, border-color 0.15s;
+  cursor: pointer;
+  margin-bottom: 0.75rem;
+}
+
+.image-upload-area.drag-over {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: var(--color-accent);
+}
+
+.upload-placeholder {
+  pointer-events: none;
+}
+
+.upload-placeholder p {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+}
+
+.upload-placeholder p:first-child {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.upload-hint {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.image-preview {
+  padding: 1rem;
+}
+
+.image-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.image-preview-item img {
+  max-width: 120px;
+  max-height: 120px;
+  border-radius: 5px;
+  object-fit: cover;
+}
+
+.image-preview-name {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.btn-remove-image {
+  padding: 0.3rem 0.7rem;
+  background: #fee2e2;
+  border: 1px solid #dc2626;
+  border-radius: 3px;
+  color: #dc2626;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.btn-remove-image:hover {
+  background: #fecaca;
+}
+
+[data-theme="dark"] .btn-remove-image {
+  background: #3d1515;
+}
+
+[data-theme="dark"] .btn-remove-image:hover {
+  background: #5a1e1e;
+}
+
+.upload-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.btn-upload {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-upload:hover {
+  background: var(--color-accent-hover);
+}
+
+@media (max-width: 600px) {
+  .upload-buttons {
+    flex-direction: column;
+  }
+
+  .image-preview-item {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
 .essay-card {
   background: var(--color-surface);
   border-radius: var(--radius);
@@ -821,6 +1023,18 @@ main {
 .history-date {
   font-size: 0.75rem;
   color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.history-type-badge {
+  display: inline-block;
+  background: rgba(37, 99, 235, 0.15);
+  color: var(--color-accent);
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
   white-space: nowrap;
   flex-shrink: 0;
 }

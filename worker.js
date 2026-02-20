@@ -11,8 +11,12 @@
  *    essay.html の WORKER_URL に貼り付ける
  */
 
-// システムプロンプト生成関数（プレースホルダーなし）
-function getBasePrompt() {
+// ===================================================
+// タイプ別システムプロンプト生成関数
+// ===================================================
+
+// 自由英作文用：既存プロンプト
+function getFreeEssayPrompt() {
   return `# 自由英作文 添削プロンプト
 ## 役割
 あなたは、明るい関西弁と温和な人柄が人気の、大学入試予備校の英語講師です。一人称は「ワイ」です。生徒が書いた英作文を添削し、学習に役立つプリントを作成します。
@@ -76,6 +80,93 @@ function getLevelInstructions(types) {
   return types.map(t => LEVEL_DEFINITIONS[t]?.instruction || '').filter(Boolean).join('\n');
 }
 
+// 和文英訳用プロンプト
+function getTranslationPrompt() {
+  return `# 和文英訳 添削プロンプト
+## 役割
+あなたは、明るい関西弁と温和な人柄が人気の、大学入試予備校の英語講師です。一人称は「ワイ」です。生徒の和文英訳を添削し、学習に役立つプリントを作成します。
+
+## 目的
+高校３年生の和文英訳を添削し、以下の観点で指導する。
+- **日本語の正確な理解**（日本語テキストの意味を正確に捉えているか）
+- **自然で正確な英訳**（文法・語法・表現が正確か）
+- **翻訳の多様性**（複数の自然な訳し方の提示）
+
+## 指導方針
+- 華麗な英語よりも**減点されない英語**を最優先とする。
+- 確実に書ける表現で得点を確保する戦略を徹底する。
+- 文法上の誤り・不自然な表現は全て指摘する。
+
+## 実行手順
+### 1. 日本語テキストの分析
+与えられた日本語の意味・文構造・重要表現を分析する。
+
+### 2. 学生の英訳評価
+- 日本語を正確に理解しているか。
+- 文法・語法は正しいか。
+- 表現は自然か。
+
+### 3. 添削・解説
+以下の観点で、ミスを**全て**列挙する。各ミスについて、①誤りの箇所→②なぜ誤りか→③正しい表現、の順で解説する。
+**文法・語法：** 主語と動詞の一致、時制、態、冠詞、前置詞、代名詞など
+**表記：** スペルミス、句読法、大文字・小文字
+**語彙・表現：** 不自然な英語表現、直訳調の表現
+
+### 4. 複数の訳例提示
+日本語の意味を正確に伝えながら、異なるアプローチでの自然な英訳例を2〜3つ提示する。
+
+## 制約条件
+- **言語**：解説と指導は全て日本語で行う。
+- **トーン**：明るい関西弁で、一人称は「ワイ」。生徒に寄り添い、良い点は都度褒める。
+- **チャット**：次の入力を促す表現は不要。
+- **出力形式**：各ステップを見出しで分け、全体をMarkdownで整形する。`;
+}
+
+// 図表付き英作文用プロンプト
+function getDiagramEssayPrompt() {
+  return `# 図表付き英作文 添削プロンプト
+## 役割
+あなたは、明るい関西弁と温和な人柄が人気の、大学入試予備校の英語講師です。一人称は「ワイ」です。生徒が書いた図表付き英作文を添削し、学習に役立つプリントを作成します。
+
+## 目的
+高校３年生の図表付き英作文を添削し、以下の観点で指導する。
+- **図表の読み取り正確性**（グラフ・表・画像の数値・情報を正確に把握しているか）
+- **課題への適切さ**（図表の説明が設問の要求に対応しているか）
+- **論理の整合性**（データに基づいた論理展開になっているか）
+
+## 指導方針
+- 華麗な英語よりも**減点されない英語**を最優先とする。
+- 図表データの読み取り精度を最重視する。
+- 文法上の誤り・論理の甘さは全て指摘する。
+
+## 実行手順
+### 1. 図表の分析
+提供された図表・画像から以下を抽出する。
+- 図表の種類（グラフ、表、画像など）
+- 主要な数値・データ・情報
+- 図表が示すトレンドや関係性
+
+### 2. 学生の読み取り評価
+- 図表データを正確に把握しているか。
+- 説明に誤読や見落としがないか。
+- データに基づいた適切な解釈をしているか。
+
+### 3. 内容評価
+- 設問の要求に対して適切に答えているか。
+- 図表の情報を効果的に活用しているか。
+- 論理に矛盾や飛躍がないか。
+
+### 4. 添削・解説
+【サンプルプロンプト - 後で自分で設定】
+ここに添削指導内容を追加してください。
+
+## 制約条件
+- **言語**：解説と指導は全て日本語で行う。
+- **トーン**：明るい関西弁で、一人称は「ワイ」。生徒に寄り添い、良い点は都度褒める。
+- **チャット**：次の入力を促す表現は不要。
+- **出力形式**：各ステップを見出しで分け、全体をMarkdownで整形する。`;
+}
+
 // タイプ別の解答例指示文を定義
 const LEVEL_DEFINITIONS = {
   A: {
@@ -110,14 +201,13 @@ const LEVEL_DEFINITIONS = {
   },
 };
 
-// 選択されたタイプに基づいて SYSTEM_PROMPT を生成
-function generateSystemPrompt(types, customInstruction = '') {
-  const basePrompt = getBasePrompt();
+// 自由英作文のシステムプロンプト生成
+function generateFreeEssayPrompt(types, customInstruction = '') {
+  const basePrompt = getFreeEssayPrompt();
   const levelInstructions = getLevelInstructions(types);
 
   let systemPrompt = basePrompt + levelInstructions;
 
-  // カスタム指定があれば追加
   if (customInstruction && customInstruction.trim()) {
     systemPrompt += `
 ### 6.5. カスタム指定
@@ -125,7 +215,6 @@ function generateSystemPrompt(types, customInstruction = '') {
 ${customInstruction.trim()}`;
   }
 
-  // セクション7以降を追加
   systemPrompt += `
 ### 7. 次回への教訓
 今回のミスから抽出した、**他の問題にも応用できる**アドバイス・汎用表現・注意点を3〜5つ紹介する。単なるミスの振り返りではなく、今後の英作文全般に活きる知識として提示する。
@@ -144,6 +233,18 @@ ${customInstruction.trim()}`;
   return systemPrompt;
 }
 
+// タイプに応じてシステムプロンプトを生成
+function generateSystemPrompt(essayType, payload) {
+  if (essayType === 'free-essay') {
+    return generateFreeEssayPrompt(payload.types || [], payload.customInstruction || '');
+  } else if (essayType === 'translation') {
+    return getTranslationPrompt();
+  } else if (essayType === 'diagram-essay') {
+    return getDiagramEssayPrompt();
+  }
+  return getFreeEssayPrompt();
+}
+
 export default {
   async fetch(request, env) {
     // CORS プリフライト対応
@@ -159,11 +260,13 @@ export default {
     if (request.method !== 'POST') {
       return new Response('Method Not Allowed', { status: 405 });
     }
-    let question, answer, types, customInstruction;
+
+    let essayType, payload;
     try {
-      ({ question = '', answer, types = [], customInstruction = '' } = await request.json());
-      if (!answer) throw new Error('answer is required');
-      console.log('[Worker] Request received. Types:', types, 'HasCustomInstruction:', !!customInstruction);
+      payload = await request.json();
+      essayType = payload.essayType;
+      if (!essayType) throw new Error('essayType is required');
+      console.log('[Worker] Request received. EssayType:', essayType);
     } catch (e) {
       console.error('[Worker] Request parse error:', e.message);
       return new Response(JSON.stringify({ error: 'リクエストが不正です' }), {
@@ -171,11 +274,51 @@ export default {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });
     }
-    const userMessage = question
-      ? `【問題文】\n${question}\n\n【あなたの解答】\n${answer}`
-      : `【あなたの解答】\n${answer}`;
 
-    const systemPrompt = generateSystemPrompt(types, customInstruction);
+    // タイプに応じてユーザーメッセージを構築
+    let userMessage = '';
+    let userContent = [];
+
+    if (essayType === 'free-essay') {
+      const { question = '', answer } = payload;
+      if (!answer) throw new Error('answer is required');
+      userMessage = question
+        ? `【問題文】\n${question}\n\n【あなたの解答】\n${answer}`
+        : `【あなたの解答】\n${answer}`;
+      userContent = [{ type: 'text', text: userMessage }];
+
+    } else if (essayType === 'translation') {
+      const { japaneseText, answer } = payload;
+      if (!japaneseText || !answer) throw new Error('japaneseText and answer are required');
+      userMessage = `【日本語テキスト】\n${japaneseText}\n\n【あなたの英訳】\n${answer}`;
+      userContent = [{ type: 'text', text: userMessage }];
+
+    } else if (essayType === 'diagram-essay') {
+      const { question = '', answer, imageBase64 } = payload;
+      if (!answer) throw new Error('answer is required');
+      if (!imageBase64) throw new Error('imageBase64 is required');
+
+      userContent = [
+        {
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: 'image/jpeg', // または他の形式に応じて調整
+            data: imageBase64.split(',')[1], // data:image/...の部分を削除
+          },
+        },
+        {
+          type: 'text',
+          text: question
+            ? `【問題文】\n${question}\n\n【あなたの解答】\n${answer}`
+            : `【あなたの解答】\n${answer}`,
+        },
+      ];
+    } else {
+      throw new Error('Invalid essayType');
+    }
+
+    const systemPrompt = generateSystemPrompt(essayType, payload);
     console.log('[Worker] System prompt generated. Length:', systemPrompt.length);
 
     const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -191,7 +334,7 @@ export default {
         max_tokens: 8192,
         stream: true,
         system: systemPrompt,
-        messages: [{ role: 'user', content: userMessage }],
+        messages: [{ role: 'user', content: userContent }],
       }),
     });
 
