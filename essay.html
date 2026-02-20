@@ -72,6 +72,17 @@
           </div>
         </div>
 
+        <div class="form-group">
+          <button class="btn-collapsible" onclick="toggleCustomSection()">
+            <span id="custom-toggle-text">▶ F：解答例を詳しく指定する</span>
+          </button>
+          <div id="custom-section" class="custom-section" hidden>
+            <label for="custom-instruction">カスタム指定（オプション）</label>
+            <textarea id="custom-instruction" class="essay-textarea essay-textarea--custom" rows="4"
+              placeholder="例：CEFR B1レベルで、日常的な語彙を用いた解答例がほしい。または、より形式的な表現を使った別パターンがほしい。"></textarea>
+          </div>
+        </div>
+
         <button id="submit-btn" class="btn-submit" onclick="submitEssay()">✏️ 添削する</button>
       </div>
 
@@ -102,6 +113,7 @@
     // ===================================================
     const WORKER_URL = 'https://essay-proxy.yoshida-tom-ac.workers.dev';
     const TYPES_KEY = 'essay_types_selection';
+    const CUSTOM_KEY = 'essay_custom_instruction';
 
     // localStorage に保存されたタイプを復元
     function loadSavedTypes() {
@@ -134,12 +146,39 @@
       });
     }
 
+    // 保存された custom instruction を復元
+    function loadCustomInstruction() {
+      try {
+        return localStorage.getItem(CUSTOM_KEY) || '';
+      } catch {
+        return '';
+      }
+    }
+
+    // Custom instruction を保存
+    function saveCustomInstruction() {
+      const text = document.getElementById('custom-instruction').value.trim();
+      localStorage.setItem(CUSTOM_KEY, text);
+    }
+
+    // Custom section を展開/折畳
+    function toggleCustomSection() {
+      const section = document.getElementById('custom-section');
+      const toggleText = document.getElementById('custom-toggle-text');
+      section.hidden = !section.hidden;
+      toggleText.textContent = section.hidden ? '▶ F：解答例を詳しく指定する' : '▼ F：解答例を詳しく指定する';
+    }
+
     // チェックボックス変更時に自動保存
     document.addEventListener('DOMContentLoaded', function() {
       restoreTypes();
       document.querySelectorAll('input[name="types"]').forEach(cb => {
         cb.addEventListener('change', saveSelectedTypes);
       });
+      // Custom instruction の復元
+      document.getElementById('custom-instruction').value = loadCustomInstruction();
+      document.getElementById('custom-instruction').addEventListener('change', saveCustomInstruction);
+      document.getElementById('custom-instruction').addEventListener('blur', saveCustomInstruction);
     });
 
     async function submitEssay() {
@@ -167,14 +206,15 @@
       resultArea.scrollIntoView({ behavior: 'smooth' });
 
       try {
-        // 選択されたタイプを取得
+        // 選択されたタイプと custom instruction を取得
         const checkboxes = document.querySelectorAll('input[name="types"]:checked');
         const types = Array.from(checkboxes).map(cb => cb.value);
+        const customInstruction = document.getElementById('custom-instruction').value.trim();
 
         const res = await fetch(WORKER_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question, answer, types }),
+          body: JSON.stringify({ question, answer, types, customInstruction }),
         });
 
         if (!res.ok) {

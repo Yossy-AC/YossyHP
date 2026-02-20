@@ -71,6 +71,8 @@ const BASE_PROMPT = `# 自由英作文 添削プロンプト
 上記①〜④に基づいた解答例を示す。
 ### 6. レベル別解答例
 ${LEVEL_INSTRUCTIONS}
+### 6.5. カスタム指定
+${CUSTOM_INSTRUCTION}
 ### 7. 次回への教訓
 今回のミスから抽出した、**他の問題にも応用できる**アドバイス・汎用表現・注意点を3〜5つ紹介する。単なるミスの振り返りではなく、今後の英作文全般に活きる知識として提示する。
 ## 制約条件
@@ -120,7 +122,7 @@ CEFR B1～B2のレベル（Cと同じ）。Cと同じレベルですが、異な
 };
 
 // 選択されたタイプに基づいて SYSTEM_PROMPT を生成
-function generateSystemPrompt(types) {
+function generateSystemPrompt(types, customInstruction = '') {
   // types が空の場合はデフォルト（A のみ）を使用
   if (!types || types.length === 0) {
     types = ['A'];
@@ -130,7 +132,16 @@ function generateSystemPrompt(types) {
   const instructionParts = types.map(t => LEVEL_DEFINITIONS[t]?.instruction || '').filter(Boolean);
   const levelInstructions = instructionParts.join('\n');
 
-  return BASE_PROMPT.replace('${LEVEL_INSTRUCTIONS}', levelInstructions);
+  // CUSTOM_INSTRUCTION を組み立て
+  let customInstructionText = '';
+  if (customInstruction && customInstruction.trim()) {
+    customInstructionText = `上記に加えて、以下のカスタム指定に従うこと：
+${customInstruction.trim()}`;
+  }
+
+  return BASE_PROMPT
+    .replace('${LEVEL_INSTRUCTIONS}', levelInstructions)
+    .replace('${CUSTOM_INSTRUCTION}', customInstructionText);
 }
 
 export default {
@@ -148,9 +159,9 @@ export default {
     if (request.method !== 'POST') {
       return new Response('Method Not Allowed', { status: 405 });
     }
-    let question, answer, types;
+    let question, answer, types, customInstruction;
     try {
-      ({ question = '', answer, types = [] } = await request.json());
+      ({ question = '', answer, types = [], customInstruction = '' } = await request.json());
       if (!answer) throw new Error('answer is required');
     } catch {
       return new Response(JSON.stringify({ error: 'リクエストが不正です' }), {
@@ -176,7 +187,7 @@ export default {
         system: [
           {
             type: 'text',
-            text: generateSystemPrompt(types),
+            text: generateSystemPrompt(types, customInstruction),
             cache_control: { type: 'ephemeral' },
           },
         ],
