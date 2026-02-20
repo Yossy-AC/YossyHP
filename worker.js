@@ -139,8 +139,8 @@ export default {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 6000,
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 8192,
         // ストリーミングを有効化
         stream: true,
         // Prompt Caching: system prompt を配列形式にして cache_control を付与
