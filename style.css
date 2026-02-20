@@ -188,6 +188,34 @@ main {
   padding: 0 1.5rem;
 }
 
+/* ---- Home Section ---- */
+
+.home-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.penguin-container {
+  text-align: center;
+}
+
+.penguin-art {
+  font-size: 12rem;
+  line-height: 1;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
 /* ---- Download Section ---- */
 
 .download-section h2 {
