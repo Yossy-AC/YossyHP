@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>お便り送信 - Yossyのペンギンさいと</title>
+  <link rel="stylesheet" href="style.css">
+  <script>if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');</script>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <span class="logo">🐧</span>
+      <div>
+        <h1><a href="index.html" class="site-title-link">Yossyのペンギンさいと</a></h1>
+        <p class="tagline"><a href="https://www.youtube.com/@yossy0116" target="_blank" rel="noopener noreferrer">🎥 Yossyのペンギンちゃんねる</a></p>
+      </div>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" title="ダークモード切り替え" aria-label="ダークモード切り替え">🌙</button>
+  </header>
+
+  <nav class="site-nav">
+    <ul>
+      <li><a href="index.html">🏠 ホーム</a></li>
+      <li><a href="about.html">🐧 自己紹介</a></li>
+      <li><a href="essay.html">✏️ 英作文添削</a></li>
+      <li><a href="contact.html" class="active">💌 お便り</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section class="contact-section">
+      <h2>お便りをお送りください</h2>
+      <p class="section-desc">ご質問、ご感想、ご提案などをお気軽にお送りください。</p>
+
+      <form id="contact-form" class="contact-form">
+        <fieldset>
+          <legend>基本情報</legend>
+
+          <div class="form-group">
+            <label for="name">お名前 <span class="optional">(任意)</span></label>
+            <input type="text" id="name" name="name" placeholder="山田太郎">
+          </div>
+
+          <div class="form-group">
+            <label for="email">メールアドレス <span class="optional">(任意)</span></label>
+            <input type="email" id="email" name="email" placeholder="example@email.com">
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>学年情報（教員用）</legend>
+
+          <div class="form-group">
+            <label for="school">高校 <span class="optional">(任意)</span></label>
+            <input type="text" id="school" name="school" placeholder="○○県立高等学校">
+          </div>
+
+          <div class="form-group">
+            <label for="grade">学年 <span class="optional">(任意)</span></label>
+            <select id="grade" name="grade">
+              <option value="">選択してください</option>
+              <option value="1年生">1年生</option>
+              <option value="2年生">2年生</option>
+              <option value="3年生">3年生</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="university">志望大学 <span class="optional">(任意)</span></label>
+            <input type="text" id="university" name="university" placeholder="例：東京大学（経済学部）">
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>お便りの内容</legend>
+
+          <div class="form-group">
+            <label for="subject">件名 <span class="optional">(任意)</span></label>
+            <input type="text" id="subject" name="subject" placeholder="英作文添削について">
+          </div>
+
+          <div class="form-group">
+            <label for="message">メッセージ <span class="required">*必須</span></label>
+            <textarea id="message" name="message" rows="8" placeholder="ご質問やご感想をお聞きかせください。" required></textarea>
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-submit">送信する</button>
+          <button type="reset" class="btn-reset">クリア</button>
+        </div>
+      </form>
+
+      <div id="form-message" class="form-message" hidden></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2024 Yossyのペンギンさいと</p>
+  </footer>
+
+  <script>
+    document.getElementById('theme-toggle').addEventListener('click', function() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+      this.textContent = isDark ? '🌙' : '☀️';
+    });
+
+    // テーマ初期化時のアイコン表示
+    if(localStorage.getItem('theme') === 'dark') {
+      document.getElementById('theme-toggle').textContent = '☀️';
+    }
+
+    // フォーム送信処理
+    document.getElementById('contact-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // フォームデータの取得
+      const formData = {
+        timestamp: new Date().toISOString(),
+        name: document.getElementById('name').value.trim() || '（名前なし）',
+        email: document.getElementById('email').value.trim() || '（メールなし）',
+        school: document.getElementById('school').value.trim() || '（未入力）',
+        grade: document.getElementById('grade').value || '（未選択）',
+        university: document.getElementById('university').value.trim() || '（未入力）',
+        subject: document.getElementById('subject').value.trim() || '（件名なし）',
+        message: document.getElementById('message').value.trim(),
+      };
+
+      // コンソール出力（デバッグ用）
+      console.log('📬 お便り送信:', formData);
+
+      // メッセージを表示
+      const messageEl = document.getElementById('form-message');
+      messageEl.className = 'form-message success';
+      messageEl.textContent = '✅ お便りを送信しました。ご協力ありがとうございます！';
+      messageEl.hidden = false;
+
+      // フォームをリセット
+      document.getElementById('contact-form').reset();
+
+      // 3秒後にメッセージを非表示
+      setTimeout(function() {
+        messageEl.hidden = true;
+      }, 3000);
+    });
+  </script>
+
+</body>
+</html>
