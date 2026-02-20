@@ -69,6 +69,41 @@ header h1 {
   margin-top: 0.2rem;
 }
 
+/* ---- Nav ---- */
+
+nav.site-nav {
+  background: #14253a;
+  padding: 0 1.5rem;
+}
+
+.site-nav ul {
+  max-width: 900px;
+  margin: 0 auto;
+  list-style: none;
+  display: flex;
+  gap: 0;
+}
+
+.site-nav a {
+  display: block;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.65rem 1.1rem;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.site-nav a:hover {
+  color: #ffffff;
+}
+
+.site-nav a.active {
+  color: #ffffff;
+  border-bottom-color: var(--color-accent);
+}
+
 /* ---- Main ---- */
 
 main {
@@ -182,6 +217,86 @@ main {
   border-radius: 3px;
   font-family: monospace;
   font-size: 0.85em;
+}
+
+/* ---- About Page ---- */
+
+.about-section h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.about-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 2rem;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.about-avatar {
+  font-size: 5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.about-body h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.about-subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.about-body p {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--color-text);
+}
+
+.about-list {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem 2rem;
+}
+
+.about-list h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--color-text);
+}
+
+.about-list ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.about-list li {
+  background: #f1f5f9;
+  border-radius: 99px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+@media (max-width: 600px) {
+  .about-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
 }
 
 /* ---- Footer ---- */
