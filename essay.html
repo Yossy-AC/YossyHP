@@ -54,6 +54,14 @@
         <div id="result-content" class="result-content"></div>
       </div>
     </section>
+
+    <section class="history-section" id="history-section" hidden>
+      <div class="history-header">
+        <h3 class="history-title">📋 過去の添削履歴</h3>
+        <button class="btn-hist-clear" onclick="clearAllHistory()">すべて削除</button>
+      </div>
+      <div id="history-list" class="history-list"></div>
+    </section>
   </main>
 
   <footer>
@@ -136,6 +144,8 @@
 
         if (!fullText) {
           resultContent.innerHTML = '<p>（添削結果を取得できませんでした）</p>';
+        } else {
+          saveToHistory(question, answer, fullText);
         }
 
       } catch (err) {
@@ -184,6 +194,78 @@
       if (inList) html += '</ul>';
       return html;
     }
+
+    // ===================================================
+    // 添削履歴 (localStorage)
+    // ===================================================
+    const HIST_KEY = 'essay_history';
+    const MAX_HIST = 20;
+
+    function loadHistories() {
+      try { return JSON.parse(localStorage.getItem(HIST_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function saveToHistory(question, answer, correction) {
+      const list = loadHistories();
+      list.unshift({ id: Date.now(), date: new Date().toISOString(), question, answer, correction });
+      if (list.length > MAX_HIST) list.length = MAX_HIST;
+      localStorage.setItem(HIST_KEY, JSON.stringify(list));
+      renderHistoryList();
+    }
+
+    function renderHistoryList() {
+      const list = loadHistories();
+      const section = document.getElementById('history-section');
+      const container = document.getElementById('history-list');
+      if (list.length === 0) { section.hidden = true; return; }
+      section.hidden = false;
+      container.innerHTML = list.map(h => {
+        const d = new Date(h.date);
+        const pad = n => String(n).padStart(2, '0');
+        const dateStr = `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        const qPrev = h.question ? escapeHtml(h.question.slice(0, 45)) + (h.question.length > 45 ? '…' : '') : '（問題文なし）';
+        return `
+          <div class="history-item" id="hist-${h.id}">
+            <div class="history-item-row">
+              <div class="history-item-meta">
+                <span class="history-date">${dateStr}</span>
+                <span class="history-preview">${qPrev}</span>
+              </div>
+              <div class="history-item-actions">
+                <button class="btn-hist-view" onclick="toggleHistoryItem(${h.id})">表示</button>
+                <button class="btn-hist-del" onclick="deleteHistoryItem(${h.id})">削除</button>
+              </div>
+            </div>
+            <div class="history-item-body" id="hist-body-${h.id}" hidden>
+              <p class="history-answer-preview"><strong>解答：</strong>${escapeHtml(h.answer.slice(0, 80))}${h.answer.length > 80 ? '…' : ''}</p>
+              <div class="result-content">${renderMarkdown(h.correction)}</div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function toggleHistoryItem(id) {
+      const body = document.getElementById(`hist-body-${id}`);
+      const btn  = document.querySelector(`#hist-${id} .btn-hist-view`);
+      body.hidden = !body.hidden;
+      btn.textContent = body.hidden ? '表示' : '閉じる';
+    }
+
+    function deleteHistoryItem(id) {
+      const list = loadHistories().filter(h => h.id !== id);
+      localStorage.setItem(HIST_KEY, JSON.stringify(list));
+      renderHistoryList();
+    }
+
+    function clearAllHistory() {
+      if (!confirm('すべての履歴を削除しますか？')) return;
+      localStorage.removeItem(HIST_KEY);
+      renderHistoryList();
+    }
+
+    // 初期描画
+    renderHistoryList();
   </script>
 
 </body>
