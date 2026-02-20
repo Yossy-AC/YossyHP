@@ -121,12 +121,20 @@ export default {
       headers: {
         'x-api-key': env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'prompt-caching-2024-07-31',
         'content-type': 'application/json',
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: 8192,
-        system: SYSTEM_PROMPT,
+        stream: true,
+        system: [
+          {
+            type: 'text',
+            text: SYSTEM_PROMPT,
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
         messages: [{ role: 'user', content: userMessage }],
       }),
     });
@@ -137,11 +145,11 @@ export default {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });
     }
-    const data = await apiRes.json();
-    const correction = data.content?.[0]?.text ?? '（添削結果を取得できませんでした）';
-    return new Response(JSON.stringify({ correction }), {
+    // Claude の SSE ストリームをそのままクライアントへ転送
+    return new Response(apiRes.body, {
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
         'Access-Control-Allow-Origin': '*',
       },
     });
