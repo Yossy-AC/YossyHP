@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英作文添削 - Yossyのペンギンさいと</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <span class="logo">🐧</span>
+      <div>
+        <h1><a href="index.html" class="site-title-link">Yossyのペンギンさいと</a></h1>
+        <p class="tagline"><a href="https://www.youtube.com/@yossy0116" target="_blank" rel="noopener noreferrer">🎥 Yossyのペンギンちゃんねる</a></p>
+      </div>
+    </div>
+  </header>
+
+  <nav class="site-nav">
+    <ul>
+      <li><a href="index.html">🏠 ホーム</a></li>
+      <li><a href="about.html">🐧 自己紹介</a></li>
+      <li><a href="essay.html" class="active">✏️ 英作文添削</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section class="essay-section">
+      <h2>英作文 AI添削</h2>
+      <p class="section-desc">問題文と解答を入力すると、AIが文法・表現・構成を添削します。</p>
+
+      <div class="essay-card">
+        <div class="form-group">
+          <label for="question">問題文（テーマ・指示文）</label>
+          <textarea id="question" class="essay-textarea" rows="4"
+            placeholder="例: Describe the advantages of studying abroad in about 100 words."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="answer">あなたの解答</label>
+          <textarea id="answer" class="essay-textarea essay-textarea--answer" rows="10"
+            placeholder="英作文をここに入力してください…"></textarea>
+        </div>
+
+        <button id="submit-btn" class="btn-submit" onclick="submitEssay()">✏️ 添削する</button>
+      </div>
+
+      <div id="result-area" class="result-area" hidden>
+        <h3 class="result-title">添削結果</h3>
+        <div id="result-content" class="result-content"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>🐧 Yossyのペンギンさいと &copy; Yossy</p>
+  </footer>
+
+  <script>
+    // ===================================================
+    // Cloudflare Worker のURLをここに設定してください
+    // worker.js をデプロイした後、URLを差し替えてください
+    // ===================================================
+    const WORKER_URL = 'https://YOUR_WORKER_NAME.YOUR_SUBDOMAIN.workers.dev';
+
+    async function submitEssay() {
+      const question = document.getElementById('question').value.trim();
+      const answer   = document.getElementById('answer').value.trim();
+
+      if (!answer) {
+        alert('解答を入力してください。');
+        return;
+      }
+
+      if (WORKER_URL.includes('YOUR_WORKER_NAME')) {
+        alert('先生がまだ添削機能の設定を完了していません。しばらくお待ちください。');
+        return;
+      }
+
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.textContent = '添削中…';
+
+      const resultArea    = document.getElementById('result-area');
+      const resultContent = document.getElementById('result-content');
+      resultArea.hidden   = true;
+
+      try {
+        const res = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question, answer }),
+        });
+
+        if (!res.ok) {
+          const msg = await res.text();
+          throw new Error(`サーバーエラー (${res.status}): ${msg}`);
+        }
+
+        const data = await res.json();
+        resultContent.innerHTML = renderMarkdown(data.correction);
+        resultArea.hidden = false;
+        resultArea.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (err) {
+        alert('エラーが発生しました:\n' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✏️ 添削する';
+      }
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function formatInline(s) {
+      return s
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`(.+?)`/g, '<code>$1</code>');
+    }
+
+    function renderMarkdown(text) {
+      const lines = text.split('\n');
+      let html   = '';
+      let inList = false;
+
+      for (const line of lines) {
+        if (line.startsWith('## ')) {
+          if (inList) { html += '</ul>'; inList = false; }
+          html += `<h3 class="r-h3">${formatInline(escapeHtml(line.slice(3)))}</h3>`;
+        } else if (line.startsWith('### ')) {
+          if (inList) { html += '</ul>'; inList = false; }
+          html += `<h4 class="r-h4">${formatInline(escapeHtml(line.slice(4)))}</h4>`;
+        } else if (/^[-*] /.test(line)) {
+          if (!inList) { html += '<ul class="r-list">'; inList = true; }
+          html += `<li>${formatInline(escapeHtml(line.slice(2)))}</li>`;
+        } else if (line.trim() === '') {
+          if (inList) { html += '</ul>'; inList = false; }
+        } else {
+          if (inList) { html += '</ul>'; inList = false; }
+          html += `<p class="r-p">${formatInline(escapeHtml(line))}</p>`;
+        }
+      }
+
+      if (inList) html += '</ul>';
+      return html;
+    }
+  </script>
+
+</body>
+</html>
