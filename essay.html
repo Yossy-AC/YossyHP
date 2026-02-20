@@ -63,7 +63,7 @@
     // Cloudflare Worker のURLをここに設定してください
     // worker.js をデプロイした後、URLを差し替えてください
     // ===================================================
-    const WORKER_URL = 'https://YOUR_WORKER_NAME.YOUR_SUBDOMAIN.workers.dev';
+    const WORKER_URL = 'https://essay-proxy.yoshida-tom-ac.workers.dev';
 
     async function submitEssay() {
       const question = document.getElementById('question').value.trim();
@@ -100,7 +100,7 @@
         }
 
         const data = await res.json();
-        resultContent.innerHTML = renderMarkdown(data.correction);
+        resultContent.innerHTML = renderMarkdown(data.result);
         resultArea.hidden = false;
         resultArea.scrollIntoView({ behavior: 'smooth' });
 
