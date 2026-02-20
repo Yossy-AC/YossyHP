@@ -390,19 +390,9 @@ main {
 }
 
 .contact-card form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-.contact-card .form-group--full {
-  grid-column: 1 / -1;
-}
-
-@media (max-width: 600px) {
-  .contact-card form {
-    grid-template-columns: 1fr;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 .form-input {
