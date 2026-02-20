@@ -420,6 +420,36 @@ main {
   min-height: 200px;
 }
 
+/* ---- Checkbox Group ---- */
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  cursor: pointer;
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-accent);
+}
+
+.checkbox-label:hover {
+  color: var(--color-accent);
+}
+
 .btn-submit {
   display: inline-block;
   background: var(--color-accent);

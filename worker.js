@@ -11,7 +11,8 @@
  *    essay.html の WORKER_URL に貼り付ける
  */
 
-const SYSTEM_PROMPT = `# 自由英作文 添削プロンプト
+// システムプロンプトテンプレート（共通部分）
+const BASE_PROMPT = `# 自由英作文 添削プロンプト
 ## 役割
 あなたは、柔らかな口調と温和な人柄が人気の、大学入試予備校の英語講師です。中堅国公立大学の自由英作文を熟知し、生徒の現在の英語力を踏まえた実戦的指導を行います。
 ## 目的
@@ -69,11 +70,7 @@ const SYSTEM_PROMPT = `# 自由英作文 添削プロンプト
 **⑤ 解答例の提示：**
 上記①〜④に基づいた解答例を示す。
 ### 6. レベル別解答例
-解答例は全て、指定語数に準拠させる。
-**解答例A（原文ベースの改善）：**
-ユーザーの原文の語彙・構文レベルを維持したまま、ミスの修正と最小限の改善のみを行う。複雑な文は追加しない。「自分の力でもここまで書けた」と実感できるレベル。
-**解答例B（減点回避の安全策）：**
-基本的な単語・表現・構文を中心とする（CEFR A2〜B1レベル）。確実に得点を確保するための、リスクを最小化した解答。
+${LEVEL_INSTRUCTIONS}
 ### 7. 次回への教訓
 今回のミスから抽出した、**他の問題にも応用できる**アドバイス・汎用表現・注意点を3〜5つ紹介する。単なるミスの振り返りではなく、今後の英作文全般に活きる知識として提示する。
 ## 制約条件
@@ -87,6 +84,54 @@ const SYSTEM_PROMPT = `# 自由英作文 添削プロンプト
 - 各ステップを見出し（例：**1. 総合判定**）で分け、全体をMarkdownで整形する。
 - 表形式は禁止。
 - 解答例中の修正・改善箇所には**太字**を用いて視認性を高める。`;
+
+// タイプ別の解答例指示文を定義
+const LEVEL_DEFINITIONS = {
+  A: {
+    label: 'A（原文ベース）',
+    instruction: `解答例は全て、指定語数に準拠させる。
+**解答例A（原文ベースの改善）：**
+ユーザーの原文の語彙・構文レベルを維持したまま、ミスの修正と最小限の改善のみを行う。複雑な文は追加しない。「自分の力でもここまで書けた」と実感できるレベル。`,
+  },
+  B: {
+    label: 'B（英検2級レベル）',
+    instruction: `解答例は全て、指定語数に準拠させる。
+**解答例B（英検2級レベル）：**
+CEFR A2～B1のレベル。平易で書きやすい論理・語彙・表現を用いた解答例。基本的な単語・表現・構文を中心に、確実に得点を確保するための、リスクを最小化した解答。`,
+  },
+  C: {
+    label: 'C（英検準1級レベル）',
+    instruction: `解答例は全て、指定語数に準拠させる。
+**解答例C（英検準1級レベル）：**
+CEFR B1～B2のレベル。一般的な高校3年生が書ける論理・語彙・表現を用いた解答例。標準的な自由英作文における、バランスの取れた推奨解答。`,
+  },
+  D: {
+    label: 'D（英検1級レベル）',
+    instruction: `解答例は全て、指定語数に準拠させる。
+**解答例D（英検1級レベル）：**
+CEFR B2～C1のレベル。難関大合格者に求められる論理・語彙・表現を用いた解答例。より高度な語彙・複雑な構文・洗練された表現を意識した解答。`,
+  },
+  E: {
+    label: 'E（別アプローチ版）',
+    instruction: `解答例は全て、指定語数に準拠させる。
+**解答例E（別アプローチ版）：**
+CEFR B1～B2のレベル（Cと同じ）。Cと同じレベルですが、異なるアプローチ（視点・ルート）での設問解釈と文章構成で書いた解答例。複数の視点から設問に答える必要がある場合の参考になる代替案。`,
+  },
+};
+
+// 選択されたタイプに基づいて SYSTEM_PROMPT を生成
+function generateSystemPrompt(types) {
+  // types が空の場合はデフォルト（A のみ）を使用
+  if (!types || types.length === 0) {
+    types = ['A'];
+  }
+
+  // LEVEL_INSTRUCTIONS を組み立て
+  const instructionParts = types.map(t => LEVEL_DEFINITIONS[t]?.instruction || '').filter(Boolean);
+  const levelInstructions = instructionParts.join('\n');
+
+  return BASE_PROMPT.replace('${LEVEL_INSTRUCTIONS}', levelInstructions);
+}
 
 export default {
   async fetch(request, env) {
@@ -103,9 +148,9 @@ export default {
     if (request.method !== 'POST') {
       return new Response('Method Not Allowed', { status: 405 });
     }
-    let question, answer;
+    let question, answer, types;
     try {
-      ({ question = '', answer } = await request.json());
+      ({ question = '', answer, types = [] } = await request.json());
       if (!answer) throw new Error('answer is required');
     } catch {
       return new Response(JSON.stringify({ error: 'リクエストが不正です' }), {
@@ -131,7 +176,7 @@ export default {
         system: [
           {
             type: 'text',
-            text: SYSTEM_PROMPT,
+            text: generateSystemPrompt(types),
             cache_control: { type: 'ephemeral' },
           },
         ],
