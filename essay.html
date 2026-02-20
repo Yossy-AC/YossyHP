@@ -46,6 +46,32 @@
             placeholder="英作文をここに入力してください…"></textarea>
         </div>
 
+        <div class="form-group">
+          <label>解答例タイプ（複数選択可）</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="type-A" name="types" value="A" checked>
+              A（原文ベース）
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="type-B" name="types" value="B">
+              B（英検2級）
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="type-C" name="types" value="C">
+              C（英検準1級）
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="type-D" name="types" value="D">
+              D（英検1級）
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="type-E" name="types" value="E">
+              E（別アプローチ版）
+            </label>
+          </div>
+        </div>
+
         <button id="submit-btn" class="btn-submit" onclick="submitEssay()">✏️ 添削する</button>
       </div>
 
@@ -75,6 +101,46 @@
     // worker.js をデプロイした後、URLを差し替えてください
     // ===================================================
     const WORKER_URL = 'https://essay-proxy.yoshida-tom-ac.workers.dev';
+    const TYPES_KEY = 'essay_types_selection';
+
+    // localStorage に保存されたタイプを復元
+    function loadSavedTypes() {
+      try {
+        const saved = localStorage.getItem(TYPES_KEY);
+        return saved ? JSON.parse(saved) : ['A'];
+      } catch {
+        return ['A'];
+      }
+    }
+
+    // タイプ選択を保存
+    function saveSelectedTypes() {
+      const checkboxes = document.querySelectorAll('input[name="types"]:checked');
+      const types = Array.from(checkboxes).map(cb => cb.value);
+      if (types.length === 0) {
+        // 何も選択されていない場合は A をデフォルトに
+        localStorage.setItem(TYPES_KEY, JSON.stringify(['A']));
+        document.getElementById('type-A').checked = true;
+      } else {
+        localStorage.setItem(TYPES_KEY, JSON.stringify(types));
+      }
+    }
+
+    // 初期化：保存されたタイプを復元
+    function restoreTypes() {
+      const saved = loadSavedTypes();
+      document.querySelectorAll('input[name="types"]').forEach(cb => {
+        cb.checked = saved.includes(cb.value);
+      });
+    }
+
+    // チェックボックス変更時に自動保存
+    document.addEventListener('DOMContentLoaded', function() {
+      restoreTypes();
+      document.querySelectorAll('input[name="types"]').forEach(cb => {
+        cb.addEventListener('change', saveSelectedTypes);
+      });
+    });
 
     async function submitEssay() {
       const question = document.getElementById('question').value.trim();
@@ -101,10 +167,14 @@
       resultArea.scrollIntoView({ behavior: 'smooth' });
 
       try {
+        // 選択されたタイプを取得
+        const checkboxes = document.querySelectorAll('input[name="types"]:checked');
+        const types = Array.from(checkboxes).map(cb => cb.value);
+
         const res = await fetch(WORKER_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question, answer }),
+          body: JSON.stringify({ question, answer, types }),
         });
 
         if (!res.ok) {
