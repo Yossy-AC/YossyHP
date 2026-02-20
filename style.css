@@ -816,6 +816,32 @@ footer {
 /* ---- Responsive ---- */
 
 @media (max-width: 600px) {
+  header {
+    padding: 1rem 1rem;
+  }
+
+  .header-inner {
+    gap: 0.75rem;
+  }
+
+  .logo {
+    font-size: 2rem;
+  }
+
+  header h1 {
+    font-size: 1.25rem;
+  }
+
+  .tagline {
+    font-size: 0.8rem;
+  }
+
+  .site-nav a {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
+  }
+
   .file-table th:nth-child(2),
   .file-table td:nth-child(2),
   .file-table th:nth-child(3),
