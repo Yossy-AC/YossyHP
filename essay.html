@@ -85,9 +85,7 @@
 
       const resultArea    = document.getElementById('result-area');
       const resultContent = document.getElementById('result-content');
-      resultContent.innerHTML = '';
-      resultArea.hidden = false;
-      resultArea.scrollIntoView({ behavior: 'smooth' });
+      resultArea.hidden   = true;
 
       try {
         const res = await fetch(WORKER_URL, {
@@ -101,42 +99,16 @@
           throw new Error(`サーバーエラー (${res.status}): ${msg}`);
         }
 
-        // SSE ストリームを逐次読み取り、テキストが届くたびに描画する
-        const reader  = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer   = '';
-        let fullText = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop(); // 最後の不完全な行は次回に持ち越す
-
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const raw = line.slice(6).trim();
-            if (!raw) continue;
-            try {
-              const evt = JSON.parse(raw);
-              if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
-                fullText += evt.delta.text;
-                resultContent.innerHTML = renderMarkdown(fullText);
-              }
-            } catch {
-              // 不完全な JSON は無視
-            }
-          }
+        const data = await res.json();
+        const correction = data.correction;
+        if (!correction) {
+          throw new Error('Workerからの応答に添削結果がありません。\n' + JSON.stringify(data));
         }
-
-        if (!fullText) {
-          resultContent.innerHTML = '<p>（添削結果を取得できませんでした）</p>';
-        }
+        resultContent.innerHTML = renderMarkdown(correction);
+        resultArea.hidden = false;
+        resultArea.scrollIntoView({ behavior: 'smooth' });
 
       } catch (err) {
-        resultArea.hidden = true;
         alert('エラーが発生しました:\n' + err.message);
       } finally {
         btn.disabled = false;
