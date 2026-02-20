@@ -11,8 +11,9 @@
  *    essay.html の WORKER_URL に貼り付ける
  */
 
-// システムプロンプトテンプレート（共通部分）
-const BASE_PROMPT = `# 自由英作文 添削プロンプト
+// システムプロンプト生成関数（プレースホルダーなし）
+function getBasePrompt() {
+  return `# 自由英作文 添削プロンプト
 ## 役割
 あなたは、柔らかな口調と温和な人柄が人気の、大学入試予備校の英語講師です。中堅国公立大学の自由英作文を熟知し、生徒の現在の英語力を踏まえた実戦的指導を行います。
 ## 目的
@@ -70,22 +71,15 @@ const BASE_PROMPT = `# 自由英作文 添削プロンプト
 **⑤ 解答例の提示：**
 上記①〜④に基づいた解答例を示す。
 ### 6. レベル別解答例
-${LEVEL_INSTRUCTIONS}
-### 6.5. カスタム指定
-${CUSTOM_INSTRUCTION}
-### 7. 次回への教訓
-今回のミスから抽出した、**他の問題にも応用できる**アドバイス・汎用表現・注意点を3〜5つ紹介する。単なるミスの振り返りではなく、今後の英作文全般に活きる知識として提示する。
-## 制約条件
-- **句読法**：コロン、セミコロン、ダッシュは解答例・解説中のいずれにおいても用いない。
-- **英語学力**：ユーザーの英語学力は、CEFR A2・英検3級・高校1年生程度を想定する。
-- **言語**：解説と指導は全て日本語で行う。
-- **トーン**：「です・ます」調で丁寧に。内容は正確・厳格に。但し、やる気をそがないように良い点や努力はあればしっかりと褒める。
-- **チャット**：次の入力を促す表現（例：「次は〜してみますか？」）は不要。
-- **語数**: 語数には一切言及しない。
-## 出力形式
-- 各ステップを見出し（例：**1. 総合判定**）で分け、全体をMarkdownで整形する。
-- 表形式は禁止。
-- 解答例中の修正・改善箇所には**太字**を用いて視認性を高める。`;
+`;
+}
+
+function getLevelInstructions(types) {
+  if (!types || types.length === 0) {
+    types = ['A'];
+  }
+  return types.map(t => LEVEL_DEFINITIONS[t]?.instruction || '').filter(Boolean).join('\n');
+}
 
 // タイプ別の解答例指示文を定義
 const LEVEL_DEFINITIONS = {
@@ -123,25 +117,36 @@ CEFR B1～B2のレベル（Cと同じ）。Cと同じレベルですが、異な
 
 // 選択されたタイプに基づいて SYSTEM_PROMPT を生成
 function generateSystemPrompt(types, customInstruction = '') {
-  // types が空の場合はデフォルト（A のみ）を使用
-  if (!types || types.length === 0) {
-    types = ['A'];
-  }
+  const basePrompt = getBasePrompt();
+  const levelInstructions = getLevelInstructions(types);
 
-  // LEVEL_INSTRUCTIONS を組み立て
-  const instructionParts = types.map(t => LEVEL_DEFINITIONS[t]?.instruction || '').filter(Boolean);
-  const levelInstructions = instructionParts.join('\n');
+  let systemPrompt = basePrompt + levelInstructions;
 
-  // CUSTOM_INSTRUCTION を組み立て
-  let customInstructionText = '';
+  // カスタム指定があれば追加
   if (customInstruction && customInstruction.trim()) {
-    customInstructionText = `上記に加えて、以下のカスタム指定に従うこと：
+    systemPrompt += `
+### 6.5. カスタム指定
+上記に加えて、以下のカスタム指定に従うこと：
 ${customInstruction.trim()}`;
   }
 
-  return BASE_PROMPT
-    .replace('${LEVEL_INSTRUCTIONS}', levelInstructions)
-    .replace('${CUSTOM_INSTRUCTION}', customInstructionText);
+  // セクション7以降を追加
+  systemPrompt += `
+### 7. 次回への教訓
+今回のミスから抽出した、**他の問題にも応用できる**アドバイス・汎用表現・注意点を3〜5つ紹介する。単なるミスの振り返りではなく、今後の英作文全般に活きる知識として提示する。
+## 制約条件
+- **句読法**：コロン、セミコロン、ダッシュは解答例・解説中のいずれにおいても用いない。
+- **英語学力**：ユーザーの英語学力は、CEFR A2・英検3級・高校1年生程度を想定する。
+- **言語**：解説と指導は全て日本語で行う。
+- **トーン**：「です・ます」調で丁寧に。内容は正確・厳格に。但し、やる気をそがないように良い点や努力はあればしっかりと褒める。
+- **チャット**：次の入力を促す表現（例：「次は〜してみますか？」）は不要。
+- **語数**: 語数には一切言及しない。
+## 出力形式
+- 各ステップを見出し（例：**1. 総合判定**）で分け、全体をMarkdownで整形する。
+- 表形式は禁止。
+- 解答例中の修正・改善箇所には**太字**を用いて視認性を高める。`;
+
+  return systemPrompt;
 }
 
 export default {
@@ -184,13 +189,7 @@ export default {
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: 8192,
         stream: true,
-        system: [
-          {
-            type: 'text',
-            text: generateSystemPrompt(types, customInstruction),
-            cache_control: { type: 'ephemeral' },
-          },
-        ],
+        system: generateSystemPrompt(types, customInstruction),
         messages: [{ role: 'user', content: userMessage }],
       }),
     });
