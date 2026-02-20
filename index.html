@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yossyのペンギンさいと</title>
   <link rel="stylesheet" href="style.css">
+  <script>if(localStorage.getItem('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');</script>
 </head>
 <body>
 
@@ -16,6 +17,7 @@
         <p class="tagline"><a href="https://www.youtube.com/@yossy0116" target="_blank" rel="noopener noreferrer">🎥 Yossyのペンギンちゃんねる</a></p>
       </div>
     </div>
+    <button class="theme-toggle" id="theme-toggle" title="ダークモード切り替え" aria-label="ダークモード切り替え">🌙</button>
   </header>
 
   <nav class="site-nav">
@@ -100,5 +102,6 @@
     <p>🐧 Yossyのペンギンさいと &copy; Yossy</p>
   </footer>
 
+  <script src="theme.js"></script>
 </body>
 </html>
