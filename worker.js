@@ -11,6 +11,13 @@
  *    essay.html の WORKER_URL に貼り付ける
  */
 // ===================================================
+// 設定
+// ===================================================
+const ALLOWED_ORIGIN = 'https://yossy-ac.github.io';
+const MAX_INPUT_LENGTH = 10000; // 入力テキストの最大文字数
+const MODEL_MAIN = 'claude-sonnet-4-6';
+const MODEL_OCR  = 'claude-haiku-4-5-20251001';
+// ===================================================
 // 共通ヘルパー
 // ===================================================
 function getRoleText(taskDescription, dialect = 'kansai') {
@@ -25,6 +32,18 @@ function getDialectTone(dialect = 'kansai') {
     return `丁寧で親切な標準語。${base}`;
   }
   return `明るい関西弁で、一人称は「ワイ」。${base}`;
+}
+function getGrammarChecklist() {
+  return `**文法・語法：**
+- 主語と動詞の一致、時制、態（能動態・受動態）
+- 名詞の単複、冠詞（a/an/the/無冠詞）
+- 前置詞、代名詞の照応、語順
+- 不定詞・動名詞の選択、関係代名詞
+- その他の文法事項
+**表記：**
+- スペルミス、句読法、大文字・小文字
+**語彙・表現：**
+- 不自然な英語表現、和製英語、直訳調の表現`;
 }
 // ===================================================
 // レベル別解答例の定義
@@ -43,7 +62,7 @@ const LEVEL_DEFINITIONS = {
   C: {
     label: 'C（英検準1級レベル）',
     instruction: `**解答例C（英検準1級レベル）：**
-１つだけ提示する。CEFR B1～B2のレベル。一般的な高校3年生が書ける論理・語彙・表現を用いた解答例。標準的な自由英作文における、バランスの取れた推奨解答。`,
+１つだけ提示する。CEFR B1上位～B2のレベル。一般的な高校3年生が書ける論理・語彙・表現を用いた解答例。標準的な自由英作文における、バランスの取れた推奨解答。`,
   },
   D: {
     label: 'D（英検1級レベル）',
@@ -85,7 +104,7 @@ function generateFreeEssayPrompt(types = [], customInstruction = '', dialect = '
 - 表形式は禁止。
 - 解答例中の修正・改善箇所には**太字**を用いて視認性を高める。
 ## 制約条件
-- **英語学力**：ユーザーの英語学力は、CEFR A2～A1・英検3～2級・高校1～2年生程度を想定する。
+- **英語学力**：ユーザーの英語学力は、CEFR A2～A1・英検3～2級・高校1～2年生程度を想定する。解説・指導の難易度はこのレベルに合わせる（解答例のレベルは別途指定）。
 - **言語**：解説と指導は全て日本語で行う。
 - **トーン**：${tone}
 - **チャット**：次の入力を促す表現（例：「次は〜してみますか？」）は不要。
@@ -98,33 +117,25 @@ function generateFreeEssayPrompt(types = [], customInstruction = '', dialect = '
 - **課題**：致命的な誤りがないか。
 ### 2. 内容・論理評価
 - 設問の意図に正しく答えているかを確認し、説明する。
-- 図表がある場合、データの読み取りが正確かを確認し、説明する。
 - 主張・根拠・結論のレベルで論理に矛盾や飛躍がないかを確認し、説明する。
 - 文章全体の論理展開（例：導入→本論→結論）が成立しているかを確認し、説明する。
 - 文と文の間に論理的断絶がないかを確認し、説明する。
 - 文章全体の説得力を確認し、説明する（具体例の有無、主張と根拠のバランス、読み手を納得させる構成・表現になっているかなど）。
 ### 3. 添削・解説
 以下の観点で、**全て**のミスについて、位置を示し指摘し、正しい表現を示して解説する。表形式での出力はしない。
-**文法・語法：**
-- 主語と動詞の一致、時制、態（能動態・受動態）
-- 名詞の単複、冠詞（a/an/the/無冠詞）
-- 前置詞、代名詞の照応、語順
-- 不定詞・動名詞の選択、関係代名詞
-- その他の文法事項
-**表記：**
-- スペルミス、句読法、大文字・小文字
-**語彙・表現：**
-- 不自然な英語表現、和製英語、直訳調の表現
+${getGrammarChecklist()}
 ### 4. 解答作成手順
 以下の順で、模範的な解答作成のプロセスを示す。
-**① 設問と図表の解釈：**
-設問・条件・図表を読み、解答に求められている要素を端的に示す。
-**② ゴールイメージ：**
-設問（および図表）の解釈を基に、どのような文章構成（論理展開）で書けばよいかを端的に示す。
-**③ 英訳前の内容確認：**
+**① 設問の解釈：**
+設問・条件を読み、解答に求められている要素を端的に示す。
+**② 主張と根拠の整理：**
+設問に対する立場（賛成／反対など）と、それを支える根拠・具体例を整理する。
+**③ ゴールイメージ：**
+設問の解釈と②の整理を基に、どのような文章構成（論理展開）で書けばよいかを端的に示す。
+**④ 英訳前の内容確認：**
 ゴールイメージを基に、文章の内容を日本語で提示する。
-**④ 解答例の提示：**
-上記③に基づいた解答例を示す。
+**⑤ 解答例の提示：**
+上記④に基づいた解答例を示す。
 ### 5. 参考用レベル別解答例
 ${levelInstructions}`;
   if (customInstruction && customInstruction.trim()) {
@@ -169,7 +180,7 @@ function generateTranslationPrompt(types = [], dialect = 'kansai') {
 - 解答例中の修正・改善箇所には**太字**を用いて視認性を高める。
 - 複数下線型の場合、下線部ごとに番号（下線部(1)、下線部(2)…）を付けて整理する。
 ## 制約条件
-- **英語学力**：ユーザーの英語学力は、CEFR A2～A1・英検3～2級・高校1～2年生程度を想定する。
+- **英語学力**：ユーザーの英語学力は、CEFR A2～A1・英検3～2級・高校1～2年生程度を想定する。解説・指導の難易度はこのレベルに合わせる（解答例のレベルは別途指定）。
 - **言語**：解説と指導は全て日本語で行う。
 - **トーン**：${tone}
 - **チャット**：次の入力を促す表現（例：「次は〜してみますか？」）は不要。
@@ -199,16 +210,7 @@ function generateTranslationPrompt(types = [], dialect = 'kansai') {
 ### 3. 添削・解説
 以下の観点で、**全て**のミスについて、位置を示し指摘し、正しい表現を示して解説する。表形式での出力はしない。
 複数下線型の場合は、下線部ごとに分けて解説する。
-**文法・語法：**
-- 主語と動詞の一致、時制、態（能動態・受動態）
-- 名詞の単複、冠詞（a/an/the/無冠詞）
-- 前置詞、代名詞の照応、語順
-- 不定詞・動名詞の選択、関係代名詞
-- その他の文法事項
-**表記：**
-- スペルミス、句読法、大文字・小文字
-**語彙・表現：**
-- 不自然な英語表現、和製英語、直訳調の表現
+${getGrammarChecklist()}
 **和文英訳特有の問題：**
 - 日本語の語順をそのまま英語に持ち込んでいる箇所
 - 日本語では自然だが英語では不自然な主語の選択（例：無生物主語にすべき箇所を人間主語にしているなど）
@@ -263,7 +265,7 @@ function generateDiagramEssayPrompt(types = [], dialect = 'kansai') {
 ## 図表データの取り扱い
 - ユーザーが画像として図表を貼り付けた場合は、OCRにより数値・項目名・単位・出典などを正確に読み取る。
 - ユーザーがテキストデータとして図表を貼り付けた場合は、その内容をそのまま使用する。
-- 読み取り結果は「ステップ0. 図表データの確認」として出力し、ユーザーに確認を求める。読み取りに不確実な箇所がある場合は、その旨を明記する。
+- 読み取り結果は「ステップ0. 図表データの確認」として出力する。詳細はステップ0を参照。
 ## 指導方針
 - 華麗な英語よりも**減点されない英語**を最優先とする。
 - 背伸びした語彙・構文で失点するより、確実に書ける表現で得点を確保する戦略を徹底する。
@@ -274,7 +276,7 @@ function generateDiagramEssayPrompt(types = [], dialect = 'kansai') {
 - 表形式は禁止。
 - 解答例中の修正・改善箇所には**太字**を用いて視認性を高める。
 ## 制約条件
-- **英語学力**：ユーザーの英語学力は、CEFR A2～A1・英検3～2級・高校1～2年生程度を想定する。
+- **英語学力**：ユーザーの英語学力は、CEFR A2～A1・英検3～2級・高校1～2年生程度を想定する。解説・指導の難易度はこのレベルに合わせる（解答例のレベルは別途指定）。
 - **言語**：解説と指導は全て日本語で行う。
 - **トーン**：${tone}
 - **チャット**：次の入力を促す表現（例：「次は〜してみますか？」）は不要。
@@ -310,16 +312,7 @@ function generateDiagramEssayPrompt(types = [], dialect = 'kansai') {
 - 文章全体の説得力を確認し、説明する。
 ### 3. 添削・解説
 以下の観点で、**全て**のミスについて、位置を示し指摘し、正しい表現を示して解説する。表形式での出力はしない。
-**文法・語法：**
-- 主語と動詞の一致、時制、態（能動態・受動態）
-- 名詞の単複、冠詞（a/an/the/無冠詞）
-- 前置詞、代名詞の照応、語順
-- 不定詞・動名詞の選択、関係代名詞
-- その他の文法事項
-**表記：**
-- スペルミス、句読法、大文字・小文字
-**語彙・表現：**
-- 不自然な英語表現、和製英語、直訳調の表現
+${getGrammarChecklist()}
 **図表関連の表現：**
 - 数値・割合の示し方の誤り（例：percent / percentageの混同、前置詞の誤りなど）
 - 増減・変化を表す表現の誤り（例：increase / decrease / remain の用法）
@@ -381,16 +374,23 @@ function generateOCRPrompt() {
 ## ルール
 - 画像に実際に書かれている内容だけを出力すること。
 - 「画像の分類」「タイトル」「読み取り不確実な部分」「出典」などのセクション見出しを自分で追加しないこと。
-- Markdownの見出し（## や ### ）を自分で付けないこと。
+- Markdownの見出し（## や ### ）は付けないこと。ただし表形式（| 区切り）や箇条書き（- ）は使ってよい。
 - 表がある場合はマークダウンの表形式（| 区切り）で記載すること。
 - グラフがある場合は、軸ラベル・凡例・各データポイントの値を箇条書きで記載すること。
-- 手書き文字の場合は、読み取れた文字をそのまま出力すること。
+- 手書き文字の場合は、読み取れた文字をそのまま出力すること。読み取れない箇所は [不明] と表記すること。
 - 不要な説明・コメント・解釈は一切加えないこと。画像の中身だけを忠実に出力すること。`;
 }
 // ===================================================
 // ユーザーメッセージ構築
 // ===================================================
 function buildUserContent(essayType, payload) {
+  // 入力文字数チェック
+  const textFields = [payload.answer, payload.question, payload.japaneseText, payload.customInstruction];
+  for (const field of textFields) {
+    if (field && field.length > MAX_INPUT_LENGTH) {
+      throw new Error(`入力テキストが長すぎます（上限: ${MAX_INPUT_LENGTH}文字）`);
+    }
+  }
   if (essayType === 'free-essay') {
     const { question = '', answer } = payload;
     if (!answer) throw new Error('answer is required');
@@ -407,24 +407,26 @@ function buildUserContent(essayType, payload) {
   if (essayType === 'diagram-essay') {
     const { question = '', answer, imageBase64 } = payload;
     if (!answer) throw new Error('answer is required');
-    if (!imageBase64) throw new Error('imageBase64 is required');
-    const mediaType = imageBase64.split(';')[0].split(':')[1];
-    const SUPPORTED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!SUPPORTED.includes(mediaType)) throw new Error(`Unsupported image type: ${mediaType}`);
     const text = question
       ? `【問題文】\n${question}\n\n【あなたの解答】\n${answer}`
       : `【あなたの解答】\n${answer}`;
-    return [
-      {
-        type: 'image',
-        source: {
-          type: 'base64',
-          media_type: mediaType,
-          data: imageBase64.split(',')[1],
+    if (imageBase64) {
+      const mediaType = imageBase64.split(';')[0].split(':')[1];
+      const SUPPORTED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!SUPPORTED.includes(mediaType)) throw new Error(`Unsupported image type: ${mediaType}`);
+      return [
+        {
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: mediaType,
+            data: imageBase64.split(',')[1],
+          },
         },
-      },
-      { type: 'text', text },
-    ];
+        { type: 'text', text },
+      ];
+    }
+    return [{ type: 'text', text }];
   }
   if (essayType === 'diagram-ocr') {
     const { imageBase64 } = payload;
@@ -455,7 +457,7 @@ export default {
     if (request.method === 'OPTIONS') {
       return new Response(null, {
         headers: {
-          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
           'Access-Control-Allow-Methods': 'POST, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type',
         },
@@ -474,7 +476,7 @@ export default {
       console.error('[Worker] Request parse error:', e.message);
       return new Response(JSON.stringify({ error: 'リクエストが不正です' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': ALLOWED_ORIGIN },
       });
     }
     let userContent;
@@ -484,7 +486,7 @@ export default {
       console.error('[Worker] Content build error:', e.message);
       return new Response(JSON.stringify({ error: e.message }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': ALLOWED_ORIGIN },
       });
     }
     const systemPrompt = generateSystemPrompt(essayType, payload);
@@ -498,7 +500,7 @@ export default {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: essayType === 'diagram-ocr' ? 'claude-haiku-3-5-20241022' : 'claude-sonnet-4-5-20250929',
+        model: essayType === 'diagram-ocr' ? MODEL_OCR : MODEL_MAIN,
         max_tokens: essayType === 'diagram-ocr' ? 1024 : 8192,
         stream: true,
         system: [
@@ -515,9 +517,9 @@ export default {
     if (!apiRes.ok) {
       const err = await apiRes.text();
       console.error('[Worker] API error:', err);
-      return new Response(JSON.stringify({ error: `Claude APIエラー: ${err}` }), {
+      return new Response(JSON.stringify({ error: '添削処理に失敗しました。しばらくしてから再度お試しください。' }), {
         status: 502,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': ALLOWED_ORIGIN },
       });
     }
     // Claude の SSE ストリームをそのままクライアントへ転送
@@ -525,7 +527,7 @@ export default {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
       },
     });
   },
