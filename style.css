@@ -75,6 +75,10 @@
   color: #60a5fa;
 }
 
+[data-theme="dark"] .dialect-toggle-group {
+  background: rgba(59, 130, 246, 0.08);
+}
+
 /* ---- Theme Toggle Button ---- */
 
 .theme-toggle {
@@ -575,6 +579,57 @@ main {
   font-size: 1rem;
   font-weight: 700;
   margin-bottom: 1rem;
+  color: var(--color-accent);
+}
+
+/* ---- Dialect Toggle ---- */
+
+.dialect-toggle-group {
+  background: rgba(37, 99, 235, 0.05);
+  padding: 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+}
+
+.dialect-toggle-group > label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+}
+
+.dialect-toggle {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dialect-toggle input[type="radio"] {
+  display: none;
+}
+
+.dialect-toggle .toggle-label {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-bg);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.15s;
+  color: var(--color-text-muted);
+  user-select: none;
+}
+
+.dialect-toggle input[type="radio"]:checked + .toggle-label {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+}
+
+.dialect-toggle .toggle-label:hover {
+  border-color: var(--color-accent);
   color: var(--color-accent);
 }
 
