@@ -559,7 +559,17 @@
     }
 
     async function performOCR(base64, field) {
+      const display = document.getElementById(`${field}-ocr-display`);
+      const textArea = document.getElementById(`${field}-ocr-text`);
+
+      if (!display || !textArea) {
+        console.error(`OCR要素が見つかりません: ${field}`);
+        alert('エラー：OCR表示要素が見つかりません');
+        return;
+      }
+
       try {
+        console.log(`[OCR] ${field} 処理開始...`);
         const response = await fetch(WORKER_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -570,7 +580,8 @@
         });
 
         if (!response.ok) {
-          throw new Error(`OCR処理エラー: ${response.status}`);
+          const errorText = await response.text();
+          throw new Error(`OCR処理エラー: ${response.status} ${errorText}`);
         }
 
         // ストリーム処理でOCR結果を取得
@@ -601,19 +612,30 @@
           }
         }
 
-        // OCR結果をクリーニング
-        const cleanedText = cleanOCRText(fullText);
+        if (!fullText || fullText.trim() === '') {
+          console.warn('[OCR] テキストが取得できませんでした');
+          textArea.value = '【OCRで読み取れませんでした。手動で入力してください】';
+        } else {
+          // OCR結果をクリーニング
+          const cleanedText = cleanOCRText(fullText);
+          console.log('[OCR] クリーニング前:', fullText.substring(0, 100));
+          console.log('[OCR] クリーニング後:', cleanedText.substring(0, 100));
+          textArea.value = cleanedText;
+        }
 
-        // OCR結果を表示
-        const display = document.getElementById(`${field}-ocr-display`);
-        const textArea = document.getElementById(`${field}-ocr-text`);
-
-        textArea.value = cleanedText;
         display.style.display = 'block';
+        console.log(`[OCR] ${field} 完了`);
+
+        // スマホでフォームがスクロール外にならないよう調整
+        setTimeout(() => {
+          display.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
 
       } catch (error) {
-        alert(`OCR処理に失敗しました: ${error.message}`);
-        removeImage(field);
+        console.error('[OCR エラー]', error);
+        textArea.value = `エラー: ${error.message}\n\n手動で入力してください。`;
+        display.style.display = 'block';
+        // removeImage(field);
       }
     }
 
