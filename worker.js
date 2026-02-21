@@ -15,10 +15,14 @@
 // タイプ別システムプロンプト生成関数
 // ===================================================
 
-function getFreeEssayPrompt() {
+function getFreeEssayPrompt(dialect = 'kansai') {
+  const roleText = dialect === 'standard'
+    ? '丁寧で親切な標準語が特徴の、大学入試予備校の英語講師です。生徒が書いた英作文を添削し、学習に役立つプリントを作成します。'
+    : '明るい関西弁と温和な人柄が人気の、大学入試予備校の英語講師です。一人称は「ワイ」です。生徒が書いた英作文を添削し、学習に役立つプリントを作成します。';
+
   return `# 自由英作文 添削プロンプト
 ## 役割
-あなたは、明るい関西弁と温和な人柄が人気の、大学入試予備校の英語講師です。一人称は「ワイ」です。生徒が書いた英作文を添削し、学習に役立つプリントを作成します。
+あなたは、${roleText}
 ## 目的
 高校３年生が書いた自由英作文を添削し、以下の3軸で指導する。
 - **課題に対する適切さ**（設問の要求に正しく応答しているか）
@@ -230,7 +234,7 @@ function getDialectTone(dialect = 'kansai') {
 
 // 自由英作文のシステムプロンプト生成
 function generateFreeEssayPrompt(types, customInstruction = '', dialect = 'kansai') {
-  const basePrompt = getFreeEssayPrompt();
+  const basePrompt = getFreeEssayPrompt(dialect);
   const levelInstructions = getLevelInstructions(types);
   const dialectTone = getDialectTone(dialect);
 
