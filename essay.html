@@ -60,8 +60,11 @@
 
     .ocr-result-display { margin: 1.5rem 0; padding: 1rem; background: var(--color-ocr-bg, #fff9e6); border-left: 4px solid var(--color-ocr-border, #ffc107); border-radius: 4px; }
     .ocr-result-display h3 { margin: 0 0 1rem 0; font-size: 1rem; }
-    .ocr-result-display textarea { width: 100%; min-height: 150px; padding: 0.5rem; border: 1px solid var(--color-border-light, #ddd); border-radius: 4px; font-family: monospace; font-size: 0.9rem; }
+    .ocr-result-display textarea { width: 100%; min-height: 400px; padding: 0.75rem; border: 1px solid var(--color-border-light, #ddd); border-radius: 4px; font-family: monospace; font-size: 0.9rem; resize: vertical; box-sizing: border-box; }
     .ocr-result-display p.note { margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--color-text-sub, #666); }
+    @media (max-width: 600px) {
+      .ocr-result-display textarea { min-height: 60vh; font-size: 14px; padding: 0.75rem; }
+    }
 
     /* OCRローディング */
     .ocr-loading { display: none; margin: 1.5rem 0; padding: 1.5rem; text-align: center; background: var(--color-surface, #fff); border: 1px solid var(--color-border-light, #ddd); border-radius: 8px; }
