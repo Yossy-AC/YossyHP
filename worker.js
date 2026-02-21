@@ -498,10 +498,16 @@ export default {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 8192,
+        model: essayType === 'diagram-ocr' ? 'claude-haiku-3-5-20241022' : 'claude-sonnet-4-5-20250929',
+        max_tokens: essayType === 'diagram-ocr' ? 1024 : 8192,
         stream: true,
-        system: systemPrompt,
+        system: [
+          {
+            type: 'text',
+            text: systemPrompt,
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
         messages: [{ role: 'user', content: userContent }],
       }),
     });
