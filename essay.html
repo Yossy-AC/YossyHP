@@ -50,7 +50,7 @@
   <main>
     <section class="essay-section">
       <h2>英作文 AI添削</h2>
-      <p class="section-desc">添削の「語数」は信じたらあかんﾃﾞ 「～は必須！」も信じていいかわからんﾃﾞ　図表はﾑﾘやﾃﾞ</p>
+      <p class="section-desc">添削の「語数」は信じたらあかんﾃﾞ 「～は必須！」も信じていいかわからんﾃﾞ　全部ウソかもしれへんﾃﾞ</p>
 
       <!-- タブナビゲーション -->
       <div class="tab-nav">
@@ -195,13 +195,13 @@
         </div>
 
         <div class="form-group">
-          <label for="question-diagram">問題文（テーマ・指示文）</label>
+          <label for="question-diagram">問題文（テーマ・指示文）　※ 画像ｱｯﾌﾟﾛｰﾄﾞよりこっちが推奨やﾃﾞ</label>
           <textarea id="question-diagram" class="essay-textarea" rows="4"
             placeholder="例: Describe the chart below in about 150 words."></textarea>
         </div>
 
         <div class="form-group">
-          <label for="image-upload">図表画像をアップロード</label>
+          <label for="image-upload">図表画像をアップロード　※ AIはうまいこと図を読み取られへん可能性が高いﾃﾞ</label>
           <div class="image-upload-area" id="image-upload-area" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
             <input type="file" id="image-upload" accept="image/*" onchange="handleImageSelect(event)" style="display: none;">
             <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
@@ -253,7 +253,7 @@
       </div>
 
       <div id="result-area" class="result-area" hidden>
-        <h3 class="result-title">添削結果（めっちゃ長い😇）</h3>
+        <h3 class="result-title">添削結果</h3>
         <div id="result-content" class="result-content"></div>
       </div>
     </section>
