@@ -300,6 +300,7 @@
             <label><input type="checkbox" name="level" value="D"> D（英検1級）</label>
             <label><input type="checkbox" name="level" value="E"> E（別アプローチ版）</label>
           </div>
+          <p style="font-size: 0.85rem; color: var(--color-text-muted, #888); margin-top: 0.5rem;">※ 選択数が多いほど処理時間が長くなります</p>
           <div class="form-group">
             <label for="custom-instruction">💡 カスタム指定（任意）</label>
             <textarea id="custom-instruction" class="essay-textarea" rows="4" placeholder="例：段落構成について重点的に指導してください"></textarea>
@@ -325,6 +326,7 @@
             <label><input type="checkbox" name="level" value="D"> D（英検1級）</label>
             <label><input type="checkbox" name="level" value="E"> E（別アプローチ版）</label>
           </div>
+          <p style="font-size: 0.85rem; color: var(--color-text-muted, #888); margin-top: 0.5rem;">※ 選択数が多いほど処理時間が長くなります</p>
 
           <div class="form-group">
             <label>🗣️ 添削のトーン</label>
@@ -345,6 +347,7 @@
             <label><input type="checkbox" name="level" value="D"> D（英検1級）</label>
             <label><input type="checkbox" name="level" value="E"> E（別アプローチ版）</label>
           </div>
+          <p style="font-size: 0.85rem; color: var(--color-text-muted, #888); margin-top: 0.5rem;">※ 選択数が多いほど処理時間が長くなります</p>
 
           <div class="hint">💡 図表が含まれる場合（または解答に図表の参照がある場合）、この選択肢を使用してください</div>
 
@@ -545,6 +548,33 @@
       }
     }
 
+    // 画像を最大1568pxにリサイズしてbase64で返す（API のビジョントークン削減用）
+    function resizeImage(base64, maxSize = 1568) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          // リサイズ不要ならそのまま返す
+          if (img.width <= maxSize && img.height <= maxSize) {
+            resolve(base64);
+            return;
+          }
+          const scale = Math.min(maxSize / img.width, maxSize / img.height);
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          // 元の形式を維持（JPEG/WebP は品質85%で再エンコード）
+          const mime = base64.split(';')[0].split(':')[1] || 'image/jpeg';
+          const quality = (mime === 'image/png' || mime === 'image/gif') ? undefined : 0.85;
+          resolve(canvas.toDataURL(mime, quality));
+        };
+        img.src = base64;
+      });
+    }
+
     async function handleImageUpload(event, field) {
       const file = event.target.files[0];
       if (!file) return;
@@ -562,7 +592,8 @@
 
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const base64 = e.target.result;
+        // APIのビジョントークン削減のため最大1568pxにリサイズ
+        const base64 = await resizeImage(e.target.result);
         AppState.images[field] = base64;
 
         // プレビュー表示
