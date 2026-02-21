@@ -55,10 +55,17 @@
     .btn-remove-image { margin-top: 0.5rem; padding: 0.3rem 0.6rem; font-size: 0.85rem; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer; }
     .btn-remove-image:hover { background: #c82333; }
 
-    .ocr-result-display { margin: 1.5rem 0; padding: 1rem; background: #fff9e6; border-left: 4px solid #ffc107; border-radius: 4px; }
+    .ocr-result-display { margin: 1.5rem 0; padding: 1rem; background: var(--color-ocr-bg, #fff9e6); border-left: 4px solid var(--color-ocr-border, #ffc107); border-radius: 4px; }
     .ocr-result-display h3 { margin: 0 0 1rem 0; font-size: 1rem; }
-    .ocr-result-display textarea { width: 100%; min-height: 150px; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 0.9rem; }
-    .ocr-result-display p.note { margin: 0.5rem 0 0 0; font-size: 0.85rem; color: #666; }
+    .ocr-result-display textarea { width: 100%; min-height: 150px; padding: 0.5rem; border: 1px solid var(--color-border-light, #ddd); border-radius: 4px; font-family: monospace; font-size: 0.9rem; }
+    .ocr-result-display p.note { margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--color-text-sub, #666); }
+
+    /* OCRローディング */
+    .ocr-loading { display: none; margin: 1.5rem 0; padding: 1.5rem; text-align: center; background: var(--color-surface, #fff); border: 1px solid var(--color-border-light, #ddd); border-radius: 8px; }
+    .ocr-loading.active { display: block; }
+    .ocr-loading-spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid var(--color-border-light, #ddd); border-top-color: #007bff; border-radius: 50%; animation: ocr-spin 0.8s linear infinite; }
+    @keyframes ocr-spin { to { transform: rotate(360deg); } }
+    .ocr-loading-text { margin-top: 0.75rem; font-size: 0.9rem; color: var(--color-text-sub, #666); }
 
     .form-group { margin: 1.5rem 0; }
     .form-group label { display: block; font-weight: bold; margin: 0 0 0.5rem 0; }
@@ -170,16 +177,20 @@
         <div id="question-image-mode" class="input-mode">
           <div class="form-group">
             <label>問題文の画像をアップロード</label>
-            <div class="image-upload-area" id="question-upload-area" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+            <div class="image-upload-area" id="question-upload-area" onclick="triggerFileInput('question')" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
               <input type="file" id="question-image-input" accept="image/*" onchange="handleImageUpload(event, 'question')" style="display: none;">
               <div class="upload-placeholder">
-                <p>📸 ここに画像をドラッグ&ドロップ</p>
-                <p class="upload-hint">または下のボタンをクリック</p>
+                <p>📸 タップして画像を選択</p>
+                <p class="upload-hint">またはドラッグ&ドロップ</p>
               </div>
               <div id="question-image-preview" class="image-preview" style="display: none;"></div>
             </div>
             <div style="margin-top: 1rem;">
               <button class="btn-action btn-next" onclick="document.getElementById('question-image-input').click()">📁 ファイルを選択</button>
+            </div>
+            <div id="question-ocr-loading" class="ocr-loading">
+              <div class="ocr-loading-spinner"></div>
+              <p class="ocr-loading-text">画像を読み取っています…</p>
             </div>
             <div id="question-ocr-display" style="display: none;">
               <div class="ocr-result-display">
@@ -223,16 +234,20 @@
         <div id="answer-image-mode" class="input-mode">
           <div class="form-group">
             <label>解答の画像をアップロード</label>
-            <div class="image-upload-area" id="answer-upload-area" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+            <div class="image-upload-area" id="answer-upload-area" onclick="triggerFileInput('answer')" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
               <input type="file" id="answer-image-input" accept="image/*" onchange="handleImageUpload(event, 'answer')" style="display: none;">
               <div class="upload-placeholder">
-                <p>📸 ここに画像をドラッグ&ドロップ</p>
-                <p class="upload-hint">または下のボタンをクリック</p>
+                <p>📸 タップして画像を選択</p>
+                <p class="upload-hint">またはドラッグ&ドロップ</p>
               </div>
               <div id="answer-image-preview" class="image-preview" style="display: none;"></div>
             </div>
             <div style="margin-top: 1rem;">
               <button class="btn-action btn-next" onclick="document.getElementById('answer-image-input').click()">📁 ファイルを選択</button>
+            </div>
+            <div id="answer-ocr-loading" class="ocr-loading">
+              <div class="ocr-loading-spinner"></div>
+              <p class="ocr-loading-text">画像を読み取っています…</p>
             </div>
             <div id="answer-ocr-display" style="display: none;">
               <div class="ocr-result-display">
@@ -451,6 +466,12 @@
     // ===================================================
     // 画像アップロード & OCR
     // ===================================================
+    function triggerFileInput(field) {
+      // 画像がすでにある場合はクリックで再選択しない（削除ボタン等のクリックを妨げないため）
+      if (AppState.images[field]) return;
+      document.getElementById(`${field}-image-input`).click();
+    }
+
     function handleDragOver(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -561,12 +582,17 @@
     async function performOCR(base64, field) {
       const display = document.getElementById(`${field}-ocr-display`);
       const textArea = document.getElementById(`${field}-ocr-text`);
+      const loading = document.getElementById(`${field}-ocr-loading`);
 
       if (!display || !textArea) {
         console.error(`OCR要素が見つかりません: ${field}`);
         alert('エラー：OCR表示要素が見つかりません');
         return;
       }
+
+      // ローディング表示
+      if (loading) loading.classList.add('active');
+      display.style.display = 'none';
 
       try {
         console.log(`[OCR] ${field} 処理開始...`);
@@ -623,6 +649,7 @@
           textArea.value = cleanedText;
         }
 
+        if (loading) loading.classList.remove('active');
         display.style.display = 'block';
         console.log(`[OCR] ${field} 完了`);
 
@@ -633,9 +660,9 @@
 
       } catch (error) {
         console.error('[OCR エラー]', error);
+        if (loading) loading.classList.remove('active');
         textArea.value = `エラー: ${error.message}\n\n手動で入力してください。`;
         display.style.display = 'block';
-        // removeImage(field);
       }
     }
 
