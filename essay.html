@@ -141,6 +141,9 @@
       <p class="section-desc">添削の「語数」は信じたらあかんﾃﾞ 「～は必須！」も信じていいかわからんﾃﾞ</p>
 
       <!-- ===== ステップ1: 問題文入力 ===== -->
+
+
+      <!-- ===== ステップ1: 問題文入力 ===== -->
       <div id="step-1" class="step-container active">
         <div class="step-header">
           <div class="step-number">ステップ 1 / 3</div>
@@ -262,7 +265,6 @@
             <button class="type-tab" data-type="diagram-essay" onclick="selectEssayType(event)">📊 図表付き英作文</button>
           </div>
         </div>
-
         <!-- 自由英作文オプション -->
         <div id="options-free-essay" class="essay-options active">
           <h3>📚 解答例のレベルを選択（複数選択可）</h3>
@@ -273,10 +275,10 @@
             <label><input type="checkbox" name="level" value="D"> D（英検1級）</label>
             <label><input type="checkbox" name="level" value="E"> E（別アプローチ版）</label>
           </div>
-
           <div class="form-group">
             <label for="custom-instruction">💡 カスタム指定（任意）</label>
             <textarea id="custom-instruction" class="essay-textarea" rows="4" placeholder="例：段落構成について重点的に指導してください"></textarea>
+
           </div>
 
           <div class="form-group">
@@ -345,6 +347,7 @@
         <div style="text-align: center; margin: 2rem 0;">
           <button class="btn-action btn-next" onclick="resetAndStart()">別の問題を解く</button>
         </div>
+
       </div>
 
       <div id="history-section" style="display: none; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #ddd;">
