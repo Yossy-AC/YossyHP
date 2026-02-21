@@ -185,10 +185,11 @@
           <div class="form-group">
             <label>問題文の画像をアップロード</label>
             <div class="image-upload-area" id="question-upload-area" onclick="triggerFileInput('question')" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-              <input type="file" id="question-image-input" accept="image/*" onchange="handleImageUpload(event, 'question')" class="hidden">
+              <input type="file" id="question-image-input" accept="image/jpeg,image/png,image/gif,image/webp" onchange="handleImageUpload(event, 'question')" class="hidden">
               <div class="upload-placeholder">
                 <p>📸 タップして画像を選択</p>
                 <p class="upload-hint">またはドラッグ&ドロップ</p>
+                <p class="upload-hint">対応形式: JPEG, PNG, GIF, WebP</p>
               </div>
               <div id="question-image-preview" class="image-preview" class="hidden"></div>
             </div>
@@ -242,10 +243,11 @@
           <div class="form-group">
             <label>解答の画像をアップロード</label>
             <div class="image-upload-area" id="answer-upload-area" onclick="triggerFileInput('answer')" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-              <input type="file" id="answer-image-input" accept="image/*" onchange="handleImageUpload(event, 'answer')" class="hidden">
+              <input type="file" id="answer-image-input" accept="image/jpeg,image/png,image/gif,image/webp" onchange="handleImageUpload(event, 'answer')" class="hidden">
               <div class="upload-placeholder">
                 <p>📸 タップして画像を選択</p>
                 <p class="upload-hint">またはドラッグ&ドロップ</p>
+                <p class="upload-hint">対応形式: JPEG, PNG, GIF, WebP</p>
               </div>
               <div id="answer-image-preview" class="image-preview" class="hidden"></div>
             </div>
@@ -547,8 +549,9 @@
       if (!file) return;
 
       // ファイル形式・サイズチェック
-      if (!file.type.startsWith('image/')) {
-        alert('画像ファイルを選択してください。');
+      const SUPPORTED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!SUPPORTED_TYPES.includes(file.type)) {
+        alert('対応していないファイル形式です。\nJPEG, PNG, GIF, WebP の画像を選択してください。');
         return;
       }
       if (file.size > 10 * 1024 * 1024) {

@@ -408,6 +408,9 @@ function buildUserContent(essayType, payload) {
     const { question = '', answer, imageBase64 } = payload;
     if (!answer) throw new Error('answer is required');
     if (!imageBase64) throw new Error('imageBase64 is required');
+    const mediaType = imageBase64.split(';')[0].split(':')[1];
+    const SUPPORTED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!SUPPORTED.includes(mediaType)) throw new Error(`Unsupported image type: ${mediaType}`);
     const text = question
       ? `【問題文】\n${question}\n\n【あなたの解答】\n${answer}`
       : `【あなたの解答】\n${answer}`;
@@ -416,7 +419,7 @@ function buildUserContent(essayType, payload) {
         type: 'image',
         source: {
           type: 'base64',
-          media_type: 'image/jpeg',
+          media_type: mediaType,
           data: imageBase64.split(',')[1],
         },
       },
@@ -426,12 +429,15 @@ function buildUserContent(essayType, payload) {
   if (essayType === 'diagram-ocr') {
     const { imageBase64 } = payload;
     if (!imageBase64) throw new Error('imageBase64 is required');
+    const mediaType = imageBase64.split(';')[0].split(':')[1];
+    const SUPPORTED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!SUPPORTED.includes(mediaType)) throw new Error(`Unsupported image type: ${mediaType}`);
     return [
       {
         type: 'image',
         source: {
           type: 'base64',
-          media_type: 'image/jpeg',
+          media_type: mediaType,
           data: imageBase64.split(',')[1],
         },
       },
