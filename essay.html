@@ -62,8 +62,11 @@
 
     .form-group { margin: 1.5rem 0; }
     .form-group label { display: block; font-weight: bold; margin: 0 0 0.5rem 0; }
-    .essay-textarea { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 0.95rem; resize: vertical; }
+    .essay-textarea { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 0.95rem; resize: vertical; min-height: 200px; }
     .essay-textarea:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
+    @media (max-width: 600px) {
+      .essay-textarea { min-height: 280px; font-size: 16px; }
+    }
 
     /* 問題タイプ選択 */
     .essay-type-tabs { display: flex; gap: 0.5rem; margin: 1.5rem 0; flex-wrap: wrap; }
@@ -345,7 +348,10 @@
       </div>
 
       <div id="history-section" style="display: none; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #ddd;">
-        <h3>📋 過去の添削履歴</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3>📋 過去の添削履歴</h3>
+          <button class="btn-action" style="background: #dc3545; color: white; padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="clearAllHistory()">すべてクリア</button>
+        </div>
         <div id="history-list"></div>
       </div>
     </section>
@@ -523,6 +529,32 @@
       document.getElementById(`${field}-ocr-display`).style.display = 'none';
     }
 
+    function cleanOCRText(text) {
+      // 不要なテキストを削除
+      const patterns = [
+        /これは手書きです\.?/gi,
+        /氏名\s*[:：]?\s*.*?(?=\n|$)/gi,
+        /名前\s*[:：]?\s*.*?(?=\n|$)/gi,
+        /クラス\s*[:：]?\s*.*?(?=\n|$)/gi,
+        /学年\s*[:：]?\s*.*?(?=\n|$)/gi,
+        /日付\s*[:：]?\s*.*?(?=\n|$)/gi,
+        /年\s*月\s*日/gi,
+        /^\s*$/gm  // 空行を整理
+      ];
+
+      let cleaned = text;
+      for (const pattern of patterns) {
+        cleaned = cleaned.replace(pattern, '');
+      }
+
+      // 複数の改行を1行に
+      cleaned = cleaned.replace(/\n\n+/g, '\n');
+      // 先頭・末尾の空白を削除
+      cleaned = cleaned.trim();
+
+      return cleaned;
+    }
+
     async function performOCR(base64, field) {
       try {
         const response = await fetch(WORKER_URL, {
@@ -566,11 +598,14 @@
           }
         }
 
+        // OCR結果をクリーニング
+        const cleanedText = cleanOCRText(fullText);
+
         // OCR結果を表示
         const display = document.getElementById(`${field}-ocr-display`);
         const textArea = document.getElementById(`${field}-ocr-text`);
 
-        textArea.value = fullText;
+        textArea.value = cleanedText;
         display.style.display = 'block';
 
       } catch (error) {
@@ -710,6 +745,9 @@
 
         if (!fullText) {
           resultContent.innerHTML = '<p>エラー：添削結果を受け取れませんでした。</p>';
+        } else {
+          // 履歴に保存
+          saveToHistory(AppState.question.text, AppState.answer.text, resultContent.innerHTML, AppState.essayType);
         }
 
       } catch (error) {
@@ -794,6 +832,116 @@
     }
 
     // ===================================================
+    // 履歴管理
+    // ===================================================
+    function saveToHistory(question, answer, result, essayType) {
+      try {
+        const history = JSON.parse(localStorage.getItem('essayHistory') || '[]');
+        const item = {
+          id: Date.now(),
+          timestamp: new Date().toISOString(),
+          question: question.substring(0, 100),
+          answer: answer.substring(0, 100),
+          result: result,
+          essayType: essayType
+        };
+        history.unshift(item);
+        // 最新100件まで保持
+        if (history.length > 100) history.pop();
+        localStorage.setItem('essayHistory', JSON.stringify(history));
+        displayHistory();
+      } catch (e) {
+        console.error('履歴保存エラー:', e);
+      }
+    }
+
+    function loadHistoryFromStorage() {
+      try {
+        return JSON.parse(localStorage.getItem('essayHistory') || '[]');
+      } catch (e) {
+        console.error('履歴読み込みエラー:', e);
+        return [];
+      }
+    }
+
+    function displayHistory() {
+      const history = loadHistoryFromStorage();
+      const historySection = document.getElementById('history-section');
+      const historyList = document.getElementById('history-list');
+
+      if (history.length === 0) {
+        historySection.style.display = 'none';
+        return;
+      }
+
+      historySection.style.display = 'block';
+      historyList.innerHTML = '';
+
+      history.forEach(item => {
+        const date = new Date(item.timestamp);
+        const dateStr = date.toLocaleString('ja-JP');
+        const typeLabel = {
+          'free-essay': '自由英作文',
+          'translation': '和文英訳',
+          'diagram-essay': '図表付き英作文'
+        }[item.essayType] || item.essayType;
+
+        const historyEl = document.createElement('div');
+        historyEl.className = 'history-item';
+        historyEl.innerHTML = `
+          <div class="history-item-row">
+            <div class="history-item-meta">
+              <span class="history-date">${dateStr}</span>
+              <span class="history-type-badge">${typeLabel}</span>
+              <span class="history-preview">${item.answer}</span>
+            </div>
+            <div class="history-item-actions">
+              <button class="btn-hist-view" onclick="viewHistoryItem(${item.id})">表示</button>
+              <button class="btn-hist-del" onclick="deleteHistoryItem(${item.id})">削除</button>
+            </div>
+          </div>
+        `;
+        historyList.appendChild(historyEl);
+      });
+    }
+
+    function viewHistoryItem(id) {
+      const history = loadHistoryFromStorage();
+      const item = history.find(h => h.id === id);
+      if (item) {
+        const resultContent = document.getElementById('result-content');
+        document.querySelectorAll('.step-container').forEach(el => {
+          el.style.display = 'none';
+        });
+        document.getElementById('result-view').style.display = 'block';
+        resultContent.innerHTML = item.result;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function deleteHistoryItem(id) {
+      if (!confirm('この項目を削除しますか？')) return;
+      try {
+        let history = JSON.parse(localStorage.getItem('essayHistory') || '[]');
+        history = history.filter(h => h.id !== id);
+        localStorage.setItem('essayHistory', JSON.stringify(history));
+        displayHistory();
+      } catch (e) {
+        console.error('削除エラー:', e);
+      }
+    }
+
+    function clearAllHistory() {
+      if (!confirm('すべての履歴を削除しますか？')) return;
+      try {
+        localStorage.removeItem('essayHistory');
+        displayHistory();
+      } catch (e) {
+        console.error('クリアエラー:', e);
+      }
+    }
+
+    // ===================================================
     // 初期化
     // ===================================================
     document.addEventListener('DOMContentLoaded', () => {
@@ -806,6 +954,9 @@
       document.querySelectorAll('.mode-btn').forEach(btn => {
         btn.addEventListener('click', switchInputMode);
       });
+
+      // 履歴を表示
+      displayHistory();
     });
   </script>
 
