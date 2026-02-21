@@ -26,32 +26,35 @@
   <style>
     /* ===== 3ステップUI用スタイル ===== */
     .essay-section { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
-    .step-container { display: none; padding: 2rem; border: 1px solid #ccc; border-radius: 8px; margin: 2rem 0; background: #fafafa; }
+    .hidden { display: none !important; }
+    .step-container { display: none; padding: 2rem; border: 1px solid var(--color-border, #ccc); border-radius: 8px; margin: 2rem 0; background: var(--color-surface, #fafafa); }
     .step-container.active { display: block; }
     .step-header { margin-bottom: 2rem; }
-    .step-number { font-size: 0.9rem; color: #666; }
-    .step-title { font-size: 1.5rem; margin: 0.5rem 0 0 0; }
+    .step-number { font-size: 0.9rem; color: var(--color-text-muted, #666); }
+    .step-title { font-size: 1.5rem; margin: 0.5rem 0 0 0; color: var(--color-text, #333); }
 
     .input-mode-tabs { display: flex; gap: 0.5rem; margin: 1.5rem 0; }
-    .mode-btn { padding: 0.5rem 1rem; border: 2px solid #ddd; background: white; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+    .mode-btn { padding: 0.5rem 1rem; border: 2px solid var(--color-border, #ddd); background: var(--color-surface, white); border-radius: 4px; cursor: pointer; transition: all 0.2s; color: var(--color-text, #333); }
     .mode-btn.active { border-color: #007bff; background: #e7f3ff; color: #007bff; font-weight: bold; }
     .mode-btn:hover { border-color: #0056b3; }
+
+    .btn-clear-history { background: #dc3545; color: white; padding: 0.5rem 1rem; font-size: 0.9rem; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; }
 
     .input-mode { display: none; margin: 1.5rem 0; }
     .input-mode.active { display: block; }
 
-    .image-upload-area { padding: 2rem; border: 2px dashed #ddd; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s; background: #f9f9f9; }
+    .image-upload-area { padding: 2rem; border: 2px dashed var(--color-border, #ddd); border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--color-surface, #f9f9f9); color: var(--color-text, #333); }
     .image-upload-area:hover { border-color: #007bff; background: #f0f8ff; }
     .image-upload-area.drag-over { border-color: #28a745; background: #f0fff4; }
 
     .upload-placeholder { pointer-events: none; }
-    .upload-placeholder p { margin: 0.5rem 0; }
-    .upload-placeholder .upload-hint { font-size: 0.9rem; color: #666; }
+    .upload-placeholder p { margin: 0.5rem 0; color: var(--color-text, #333); }
+    .upload-placeholder .upload-hint { font-size: 0.9rem; color: var(--color-text-muted, #666); }
 
     .image-preview { padding: 1rem; }
     .image-preview-item { position: relative; display: inline-block; }
-    .image-preview-item img { max-width: 300px; max-height: 200px; border-radius: 4px; border: 1px solid #ddd; }
-    .image-preview-name { margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #666; }
+    .image-preview-item img { max-width: 300px; max-height: 200px; border-radius: 4px; border: 1px solid var(--color-border, #ddd); }
+    .image-preview-name { margin: 0.5rem 0 0 0; font-size: 0.9rem; color: var(--color-text-muted, #666); }
     .btn-remove-image { margin-top: 0.5rem; padding: 0.3rem 0.6rem; font-size: 0.85rem; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer; }
     .btn-remove-image:hover { background: #c82333; }
 
@@ -68,8 +71,8 @@
     .ocr-loading-text { margin-top: 0.75rem; font-size: 0.9rem; color: var(--color-text-sub, #666); }
 
     .form-group { margin: 1.5rem 0; }
-    .form-group label { display: block; font-weight: bold; margin: 0 0 0.5rem 0; }
-    .essay-textarea { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 0.95rem; resize: vertical; min-height: 200px; }
+    .form-group label { display: block; font-weight: bold; margin: 0 0 0.5rem 0; color: var(--color-text, #333); }
+    .essay-textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--color-border, #ddd); border-radius: 4px; font-family: monospace; font-size: 0.95rem; resize: vertical; min-height: 200px; background: var(--color-surface, white); color: var(--color-text, #333); }
     .essay-textarea:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
     @media (max-width: 600px) {
       .essay-textarea { min-height: 280px; font-size: 16px; }
@@ -77,18 +80,18 @@
 
     /* 問題タイプ選択 */
     .essay-type-tabs { display: flex; gap: 0.5rem; margin: 1.5rem 0; flex-wrap: wrap; }
-    .type-tab { padding: 0.75rem 1.5rem; border: 2px solid #ddd; background: white; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+    .type-tab { padding: 0.75rem 1.5rem; border: 2px solid var(--color-border, #ddd); background: var(--color-surface, white); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s; color: var(--color-text, #333); }
     .type-tab:hover { border-color: #007bff; background: #f0f8ff; }
     .type-tab.active { border-color: #007bff; background: #007bff; color: white; }
 
-    .essay-options { display: none; margin: 1.5rem 0; padding: 1.5rem; background: #f9f9f9; border-radius: 6px; }
+    .essay-options { display: none; margin: 1.5rem 0; padding: 1.5rem; background: var(--color-surface, #f9f9f9); border-radius: 6px; }
     .essay-options.active { display: block; }
 
     .level-checkboxes { display: flex; flex-wrap: wrap; gap: 1.5rem; margin: 1rem 0; }
     .level-checkboxes label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: normal; }
     .level-checkboxes input[type="checkbox"] { cursor: pointer; }
 
-    .hint { margin: 1rem 0; padding: 0.75rem; background: #e7f3ff; border-left: 3px solid #007bff; border-radius: 3px; font-size: 0.95rem; color: #0056b3; }
+    .hint { margin: 1rem 0; padding: 0.75rem; background: rgba(0,123,255,0.1); border-left: 3px solid #007bff; border-radius: 3px; font-size: 0.95rem; color: #0056b3; }
 
     .step-actions { display: flex; gap: 1rem; margin: 2rem 0; justify-content: space-between; }
     .btn-action { padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: all 0.2s; }
@@ -100,7 +103,7 @@
     .btn-submit:hover { background: #218838; }
     .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
 
-    .result-area { margin: 2rem 0; padding: 2rem; background: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; }
+    .result-area { margin: 2rem 0; padding: 2rem; background: var(--color-surface, #f9f9f9); border-radius: 8px; border: 1px solid var(--color-border, #ddd); }
     .result-area h3 { margin-top: 0; }
     .result-content { line-height: 1.8; }
     .r-h3 { font-size: 1.2rem; margin: 1.5rem 0 1rem 0; font-weight: bold; }
@@ -178,12 +181,12 @@
           <div class="form-group">
             <label>問題文の画像をアップロード</label>
             <div class="image-upload-area" id="question-upload-area" onclick="triggerFileInput('question')" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-              <input type="file" id="question-image-input" accept="image/*" onchange="handleImageUpload(event, 'question')" style="display: none;">
+              <input type="file" id="question-image-input" accept="image/*" onchange="handleImageUpload(event, 'question')" class="hidden">
               <div class="upload-placeholder">
                 <p>📸 タップして画像を選択</p>
                 <p class="upload-hint">またはドラッグ&ドロップ</p>
               </div>
-              <div id="question-image-preview" class="image-preview" style="display: none;"></div>
+              <div id="question-image-preview" class="image-preview" class="hidden"></div>
             </div>
             <div style="margin-top: 1rem;">
               <button class="btn-action btn-next" onclick="document.getElementById('question-image-input').click()">📁 ファイルを選択</button>
@@ -192,7 +195,7 @@
               <div class="ocr-loading-spinner"></div>
               <p class="ocr-loading-text">画像を読み取っています…</p>
             </div>
-            <div id="question-ocr-display" style="display: none;">
+            <div id="question-ocr-display" class="hidden">
               <div class="ocr-result-display">
                 <h3>📋 OCR読み取り結果（修正してください）</h3>
                 <textarea id="question-ocr-text" class="essay-textarea" rows="6"></textarea>
@@ -235,12 +238,12 @@
           <div class="form-group">
             <label>解答の画像をアップロード</label>
             <div class="image-upload-area" id="answer-upload-area" onclick="triggerFileInput('answer')" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-              <input type="file" id="answer-image-input" accept="image/*" onchange="handleImageUpload(event, 'answer')" style="display: none;">
+              <input type="file" id="answer-image-input" accept="image/*" onchange="handleImageUpload(event, 'answer')" class="hidden">
               <div class="upload-placeholder">
                 <p>📸 タップして画像を選択</p>
                 <p class="upload-hint">またはドラッグ&ドロップ</p>
               </div>
-              <div id="answer-image-preview" class="image-preview" style="display: none;"></div>
+              <div id="answer-image-preview" class="image-preview" class="hidden"></div>
             </div>
             <div style="margin-top: 1rem;">
               <button class="btn-action btn-next" onclick="document.getElementById('answer-image-input').click()">📁 ファイルを選択</button>
@@ -249,7 +252,7 @@
               <div class="ocr-loading-spinner"></div>
               <p class="ocr-loading-text">画像を読み取っています…</p>
             </div>
-            <div id="answer-ocr-display" style="display: none;">
+            <div id="answer-ocr-display" class="hidden">
               <div class="ocr-result-display">
                 <h3>📋 OCR読み取り結果（修正してください）</h3>
                 <textarea id="answer-ocr-text" class="essay-textarea" rows="10"></textarea>
@@ -354,7 +357,7 @@
       </div>
 
       <!-- ===== 結果表示 ===== -->
-      <div id="result-view" style="display: none;">
+      <div id="result-view" class="hidden">
         <div class="result-area">
           <h3>📝 添削結果</h3>
           <div id="result-content" class="result-content"></div>
@@ -365,10 +368,10 @@
 
       </div>
 
-      <div id="history-section" style="display: none; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #ddd;">
+      <div id="history-section" class="hidden" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--color-border, #ddd);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <h3>📋 過去の添削履歴</h3>
-          <button class="btn-action" style="background: #dc3545; color: white; padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="clearAllHistory()">すべてクリア</button>
+          <button class="btn-action btn-clear-history" onclick="clearAllHistory()">すべてクリア</button>
         </div>
         <div id="history-list"></div>
       </div>
@@ -403,8 +406,33 @@
     // ===================================================
     // ステップ遷移
     // ===================================================
+    function validateStepTransition(fromStep, toStep) {
+      if (fromStep === 1 && toStep === 2) {
+        // ステップ1→2: 問題文が必須
+        const questionText = getInputValue('question');
+        if (!questionText || questionText.trim() === '') {
+          alert('問題文を入力してください。');
+          return false;
+        }
+      }
+      if (fromStep === 2 && toStep === 3) {
+        // ステップ2→3: 英作文が必須
+        const answerText = getInputValue('answer');
+        if (!answerText || answerText.trim() === '') {
+          alert('英作文を入力してください。');
+          return false;
+        }
+      }
+      return true;
+    }
+
     function goToStep(stepNum) {
       if (stepNum < 1 || stepNum > 3) return;
+
+      // ステップ遷移のバリデーション
+      if (stepNum > AppState.currentStep && !validateStepTransition(AppState.currentStep, stepNum)) {
+        return;
+      }
 
       // 現在のステップのデータを保存
       if (AppState.currentStep === 1) {
@@ -426,12 +454,15 @@
 
     // 入力値取得（手入力またはOCR修正後）
     function getInputValue(field) {
+      const ocrDisplay = document.getElementById(`${field}-ocr-display`);
       const ocrText = document.getElementById(`${field}-ocr-text`);
       const textInput = document.getElementById(`${field}-text-input`);
 
-      if (ocrText && ocrText.style.display !== 'none' && ocrText.offsetParent !== null) {
+      // OCR結果が表示されていれば、OCRテキストを優先
+      if (ocrDisplay && !ocrDisplay.classList.contains('hidden') && ocrText) {
         return ocrText.value;
       }
+      // そうでなければ手入力テキストを返す
       return textInput?.value || '';
     }
 
@@ -539,18 +570,19 @@
           <button class="btn-remove-image" onclick="removeImage('${field}')">削除</button>
         </div>
       `;
-      preview.style.display = 'block';
+      preview.classList.remove('hidden');
 
-      document.querySelector(`#${field}-upload-area .upload-placeholder`).style.display = 'none';
+      document.querySelector(`#${field}-upload-area .upload-placeholder`).classList.add('hidden');
     }
 
     function removeImage(field) {
       AppState.images[field] = null;
       document.getElementById(`${field}-image-input`).value = '';
       document.getElementById(`${field}-image-preview`).innerHTML = '';
-      document.getElementById(`${field}-image-preview`).style.display = 'none';
-      document.querySelector(`#${field}-upload-area .upload-placeholder`).style.display = 'block';
-      document.getElementById(`${field}-ocr-display`).style.display = 'none';
+      document.getElementById(`${field}-image-preview`).classList.add('hidden');
+      document.querySelector(`#${field}-upload-area .upload-placeholder`).classList.remove('hidden');
+      document.getElementById(`${field}-ocr-display`).classList.add('hidden');
+      document.getElementById(`${field}-ocr-loading`).classList.remove('active');
     }
 
     function cleanOCRText(text) {
@@ -592,7 +624,7 @@
 
       // ローディング表示
       if (loading) loading.classList.add('active');
-      display.style.display = 'none';
+      display.classList.add('hidden');
 
       try {
         console.log(`[OCR] ${field} 処理開始...`);
@@ -650,7 +682,7 @@
         }
 
         if (loading) loading.classList.remove('active');
-        display.style.display = 'block';
+        display.classList.remove('hidden');
         console.log(`[OCR] ${field} 完了`);
 
         // スマホでフォームがスクロール外にならないよう調整
@@ -662,7 +694,7 @@
         console.error('[OCR エラー]', error);
         if (loading) loading.classList.remove('active');
         textArea.value = `エラー: ${error.message}\n\n手動で入力してください。`;
-        display.style.display = 'block';
+        display.classList.remove('hidden');
       }
     }
 
@@ -747,9 +779,9 @@
       btn.textContent = '🔄 添削中…';
 
       document.querySelectorAll('.step-container').forEach(el => {
-        el.style.display = 'none';
+        el.classList.remove('active');
       });
-      document.getElementById('result-view').style.display = 'block';
+      document.getElementById('result-view').classList.remove('hidden');
       const resultContent = document.getElementById('result-content');
       resultContent.innerHTML = '<p>処理中…</p>';
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -832,13 +864,14 @@
       ['question', 'answer'].forEach(field => {
         document.getElementById(`${field}-image-input`).value = '';
         document.getElementById(`${field}-image-preview`).innerHTML = '';
-        document.getElementById(`${field}-image-preview`).style.display = 'none';
-        document.querySelector(`#${field}-upload-area .upload-placeholder`).style.display = 'block';
-        document.getElementById(`${field}-ocr-display`).style.display = 'none';
+        document.getElementById(`${field}-image-preview`).classList.add('hidden');
+        document.querySelector(`#${field}-upload-area .upload-placeholder`).classList.remove('hidden');
+        document.getElementById(`${field}-ocr-display`).classList.add('hidden');
+        document.getElementById(`${field}-ocr-loading`).classList.remove('active');
       });
 
       // ステップ1へ
-      document.getElementById('result-view').style.display = 'none';
+      document.getElementById('result-view').classList.add('hidden');
       goToStep(1);
     }
 
@@ -922,11 +955,11 @@
       const historyList = document.getElementById('history-list');
 
       if (history.length === 0) {
-        historySection.style.display = 'none';
+        historySection.classList.add('hidden');
         return;
       }
 
-      historySection.style.display = 'block';
+      historySection.classList.remove('hidden');
       historyList.innerHTML = '';
 
       history.forEach(item => {
@@ -963,9 +996,9 @@
       if (item) {
         const resultContent = document.getElementById('result-content');
         document.querySelectorAll('.step-container').forEach(el => {
-          el.style.display = 'none';
+          el.classList.remove('active');
         });
-        document.getElementById('result-view').style.display = 'block';
+        document.getElementById('result-view').classList.remove('hidden');
         resultContent.innerHTML = item.result;
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
