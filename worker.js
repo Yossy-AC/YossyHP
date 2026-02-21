@@ -81,10 +81,14 @@ function getLevelInstructions(types) {
 }
 
 // 和文英訳用プロンプト
-function getTranslationPrompt(types = []) {
+function getTranslationPrompt(types = [], dialect = 'kansai') {
+  const roleText = dialect === 'standard'
+    ? '丁寧で親切な標準語が特徴の、大学入試予備校の英語講師です。生徒の和文英訳を添削し、学習に役立つプリントを作成します。'
+    : '明るい関西弁と温和な人柄が人気の、大学入試予備校の英語講師です。一人称は「ワイ」です。生徒の和文英訳を添削し、学習に役立つプリントを作成します。';
+
   const basePrompt = `# 和文英訳 添削プロンプト
 ## 役割
-あなたは、明るい関西弁と温和な人柄が人気の、大学入試予備校の英語講師です。一人称は「ワイ」です。生徒の和文英訳を添削し、学習に役立つプリントを作成します。
+あなたは、${roleText}
 
 ## 目的
 高校３年生の和文英訳を添削し、以下の観点で指導する。
@@ -117,21 +121,26 @@ function getTranslationPrompt(types = []) {
 
   const levelInstructions = getLevelInstructions(types);
   const fullPrompt = basePrompt + (levelInstructions ? '\n\n' + levelInstructions : '');
+  const dialectTone = getDialectTone(dialect);
 
   return fullPrompt + `
 
 ## 制約条件
 - **言語**：解説と指導は全て日本語で行う。
-- **トーン**：明るい関西弁で、一人称は「ワイ」。生徒に寄り添い、良い点は都度褒める。
+- **トーン**：${dialectTone}
 - **チャット**：次の入力を促す表現は不要。
 - **出力形式**：各ステップを見出しで分け、全体をMarkdownで整形する。`;
 }
 
 // 図表付き英作文用プロンプト
-function getDiagramEssayPrompt(types = []) {
+function getDiagramEssayPrompt(types = [], dialect = 'kansai') {
+  const roleText = dialect === 'standard'
+    ? '丁寧で親切な標準語が特徴の、大学入試予備校の英語講師です。生徒が書いた図表付き英作文を添削し、学習に役立つプリントを作成します。'
+    : '明るい関西弁と温和な人柄が人気の、大学入試予備校の英語講師です。一人称は「ワイ」です。生徒が書いた図表付き英作文を添削し、学習に役立つプリントを作成します。';
+
   const basePrompt = `# 図表付き英作文 添削プロンプト
 ## 役割
-あなたは、明るい関西弁と温和な人柄が人気の、大学入試予備校の英語講師です。一人称は「ワイ」です。生徒が書いた図表付き英作文を添削し、学習に役立つプリントを作成します。
+あなたは、${roleText}
 
 ## 目的
 高校３年生の図表付き英作文を添削し、以下の観点で指導する。
@@ -167,12 +176,13 @@ function getDiagramEssayPrompt(types = []) {
 
   const levelInstructions = getLevelInstructions(types);
   const fullPrompt = basePrompt + (levelInstructions ? '\n\n' + levelInstructions : '');
+  const dialectTone = getDialectTone(dialect);
 
   return fullPrompt + `
 
 ## 制約条件
 - **言語**：解説と指導は全て日本語で行う。
-- **トーン**：明るい関西弁で、一人称は「ワイ」。生徒に寄り添い、良い点は都度褒める。
+- **トーン**：${dialectTone}
 - **チャット**：次の入力を促す表現は不要。
 - **出力形式**：各ステップを見出しで分け、全体をMarkdownで整形する。`;
 }
@@ -211,10 +221,19 @@ const LEVEL_DEFINITIONS = {
   },
 };
 
+// 方言別のトーン指定
+function getDialectTone(dialect = 'kansai') {
+  if (dialect === 'standard') {
+    return `丁寧で親切な標準語。生徒に寄り添い、良い点は都度褒める。ただし、内容は正確・厳格に。`;
+  }
+  return `明るい関西弁で、一人称は「ワイ」。生徒に寄り添い、良い点は都度褒める。ただし、内容は正確・厳格に。`;
+}
+
 // 自由英作文のシステムプロンプト生成
-function generateFreeEssayPrompt(types, customInstruction = '') {
+function generateFreeEssayPrompt(types, customInstruction = '', dialect = 'kansai') {
   const basePrompt = getFreeEssayPrompt();
   const levelInstructions = getLevelInstructions(types);
+  const dialectTone = getDialectTone(dialect);
 
   let systemPrompt = basePrompt + levelInstructions;
 
@@ -232,7 +251,7 @@ ${customInstruction.trim()}`;
 - **句読法**：コロン、セミコロン、ダッシュは解答例・解説中のいずれにおいても用いない。
 - **英語学力**：ユーザーの英語学力は、CEFR A2・英検3級・高校1年生程度を想定する。
 - **言語**：解説と指導は全て日本語で行う。
-- **トーン**：明るい関西弁で、一人称は「ワイ」。生徒に寄り添い、良い点は都度褒める。ただし、内容は正確・厳格に。
+- **トーン**：${dialectTone}
 - **チャット**：次の入力を促す表現（例：「次は〜してみますか？」）は不要。
 - **語数**: 語数には一切言及しない。
 ## 出力形式
@@ -245,12 +264,13 @@ ${customInstruction.trim()}`;
 
 // タイプに応じてシステムプロンプトを生成
 function generateSystemPrompt(essayType, payload) {
+  const dialect = payload.dialect || 'kansai';
   if (essayType === 'free-essay') {
-    return generateFreeEssayPrompt(payload.types || [], payload.customInstruction || '');
+    return generateFreeEssayPrompt(payload.types || [], payload.customInstruction || '', dialect);
   } else if (essayType === 'translation') {
-    return getTranslationPrompt(payload.types || []);
+    return getTranslationPrompt(payload.types || [], dialect);
   } else if (essayType === 'diagram-essay') {
-    return getDiagramEssayPrompt(payload.types || []);
+    return getDiagramEssayPrompt(payload.types || [], dialect);
   }
   return getFreeEssayPrompt();
 }

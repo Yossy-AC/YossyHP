@@ -62,6 +62,17 @@
       <!-- タブ1: ふつうの英作文 -->
       <div class="essay-card tab-content tab-content--active" id="free-essay">
         <h3 class="essay-subheading">ふつうの英作文 AI添削</h3>
+
+        <div class="form-group dialect-toggle-group">
+          <label>添削のトーン</label>
+          <div class="dialect-toggle">
+            <input type="radio" id="dialect-free-kansai" name="dialect-free" value="kansai" checked>
+            <label for="dialect-free-kansai" class="toggle-label">🗣️ 関西弁</label>
+            <input type="radio" id="dialect-free-standard" name="dialect-free" value="standard">
+            <label for="dialect-free-standard" class="toggle-label">🗣️ 標準語</label>
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="question-free">問題文（テーマ・指示文）</label>
           <textarea id="question-free" class="essay-textarea" rows="4"
@@ -117,6 +128,17 @@
       <!-- タブ2: 和文英訳 -->
       <div class="essay-card tab-content" id="translation">
         <h3 class="essay-subheading">和文英訳 AI添削</h3>
+
+        <div class="form-group dialect-toggle-group">
+          <label>添削のトーン</label>
+          <div class="dialect-toggle">
+            <input type="radio" id="dialect-trans-kansai" name="dialect-trans" value="kansai" checked>
+            <label for="dialect-trans-kansai" class="toggle-label">🗣️ 関西弁</label>
+            <input type="radio" id="dialect-trans-standard" name="dialect-trans" value="standard">
+            <label for="dialect-trans-standard" class="toggle-label">🗣️ 標準語</label>
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="japanese-text">日本語テキスト</label>
           <textarea id="japanese-text" class="essay-textarea" rows="6"
@@ -161,6 +183,17 @@
       <!-- タブ3: 図表付き英作文 -->
       <div class="essay-card tab-content" id="diagram-essay">
         <h3 class="essay-subheading">図表付き英作文 AI添削</h3>
+
+        <div class="form-group dialect-toggle-group">
+          <label>添削のトーン</label>
+          <div class="dialect-toggle">
+            <input type="radio" id="dialect-diagram-kansai" name="dialect-diagram" value="kansai" checked>
+            <label for="dialect-diagram-kansai" class="toggle-label">🗣️ 関西弁</label>
+            <input type="radio" id="dialect-diagram-standard" name="dialect-diagram" value="standard">
+            <label for="dialect-diagram-standard" class="toggle-label">🗣️ 標準語</label>
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="question-diagram">問題文（テーマ・指示文）</label>
           <textarea id="question-diagram" class="essay-textarea" rows="4"
@@ -247,6 +280,7 @@
     const WORKER_URL = 'https://essay-proxy.yoshida-tom-ac.workers.dev';
     const TYPES_KEY = 'essay_types_selection';
     const CUSTOM_KEY = 'essay_custom_instruction';
+    const DIALECT_KEY = 'essay_dialect_preference';
 
     // グローバル変数：アップロードされた画像
     let uploadedImageBase64 = null;
@@ -417,7 +451,43 @@
       document.getElementById('custom-instruction').value = loadCustomInstruction();
       document.getElementById('custom-instruction').addEventListener('change', saveCustomInstruction);
       document.getElementById('custom-instruction').addEventListener('blur', saveCustomInstruction);
+
+      // 方言トグルの初期化と状態管理
+      restoreDialectSelection();
+      document.querySelectorAll('input[name^="dialect-"]').forEach(radio => {
+        radio.addEventListener('change', saveDialectSelection);
+      });
     });
+
+    // 方言選択を localStorage に保存
+    function saveDialectSelection() {
+      const dialects = {
+        'free-essay': document.querySelector('input[name="dialect-free"]:checked')?.value || 'kansai',
+        'translation': document.querySelector('input[name="dialect-trans"]:checked')?.value || 'kansai',
+        'diagram-essay': document.querySelector('input[name="dialect-diagram"]:checked')?.value || 'kansai'
+      };
+      localStorage.setItem(DIALECT_KEY, JSON.stringify(dialects));
+    }
+
+    // localStorage から方言選択を復元
+    function restoreDialectSelection() {
+      try {
+        const saved = localStorage.getItem(DIALECT_KEY);
+        const dialects = saved ? JSON.parse(saved) : {};
+
+        if (dialects['free-essay']) {
+          document.getElementById(`dialect-free-${dialects['free-essay']}`).checked = true;
+        }
+        if (dialects['translation']) {
+          document.getElementById(`dialect-trans-${dialects['translation']}`).checked = true;
+        }
+        if (dialects['diagram-essay']) {
+          document.getElementById(`dialect-diagram-${dialects['diagram-essay']}`).checked = true;
+        }
+      } catch (e) {
+        console.warn('[Essay] Failed to restore dialect selection:', e);
+      }
+    }
 
     async function submitEssay(tabType) {
       let payload = {};
@@ -435,13 +505,15 @@
         const checkboxes = document.querySelectorAll('input[name="types"]:checked');
         const types = Array.from(checkboxes).map(cb => cb.value);
         const customInstruction = document.getElementById('custom-instruction').value.trim();
+        const dialect = document.querySelector('input[name="dialect-free"]:checked')?.value || 'kansai';
 
         payload = {
           essayType: 'free-essay',
           question,
           answer,
           types,
-          customInstruction
+          customInstruction,
+          dialect
         };
 
       } else if (tabType === 'translation') {
@@ -455,12 +527,14 @@
 
         const transCheckboxes = document.querySelectorAll('input[name="trans-types"]:checked');
         const transTypes = Array.from(transCheckboxes).map(cb => cb.value);
+        const transDialect = document.querySelector('input[name="dialect-trans"]:checked')?.value || 'kansai';
 
         payload = {
           essayType: 'translation',
           japaneseText,
           answer,
-          types: transTypes
+          types: transTypes,
+          dialect: transDialect
         };
 
       } else if (tabType === 'diagram-essay') {
@@ -479,13 +553,15 @@
 
         const diagramCheckboxes = document.querySelectorAll('input[name="diagram-types"]:checked');
         const diagramTypes = Array.from(diagramCheckboxes).map(cb => cb.value);
+        const diagramDialect = document.querySelector('input[name="dialect-diagram"]:checked')?.value || 'kansai';
 
         payload = {
           essayType: 'diagram-essay',
           question,
           answer,
           imageBase64: uploadedImageBase64,
-          types: diagramTypes
+          types: diagramTypes,
+          dialect: diagramDialect
         };
       }
 
