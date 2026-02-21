@@ -610,6 +610,7 @@ main {
 }
 
 .dialect-toggle .toggle-label {
+  display: inline-block;
   padding: 0.5rem 1rem;
   border: 2px solid var(--color-border);
   border-radius: 5px;
