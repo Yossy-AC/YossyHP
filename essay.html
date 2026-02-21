@@ -27,7 +27,7 @@
     /* ===== 3ステップUI用スタイル ===== */
     .essay-section { max-width: 800px; margin: 0 auto; padding: 2rem 1rem; }
     .hidden { display: none !important; }
-    .step-container { display: none; padding: 2rem; border: 1px solid var(--color-border, #ccc); border-radius: 8px; margin: 2rem 0; background: var(--color-surface, #fafafa); }
+    .step-container { display: none; padding: 2rem; border: 1px solid var(--color-border, #ccc); border-radius: 8px; margin: 2rem 0; background: var(--color-surface, #fafafa); overflow: hidden; }
     .step-container.active { display: block; }
     .step-header { margin-bottom: 2rem; }
     .step-number { font-size: 0.9rem; color: var(--color-text-muted, #666); }
@@ -58,7 +58,7 @@
     .btn-remove-image { margin-top: 0.5rem; padding: 0.3rem 0.6rem; font-size: 0.85rem; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer; }
     .btn-remove-image:hover { background: #c82333; }
 
-    .ocr-result-display { margin: 1.5rem -3rem; padding: 1rem 3rem; background: var(--color-ocr-bg, #fff9e6); border-top: 4px solid var(--color-ocr-border, #ffc107); border-radius: 0; }
+    .ocr-result-display { margin: 1.5rem -3rem; padding: 1.25rem 3rem; background: var(--color-bg, #f0f4f8); border-top: 3px solid var(--color-accent, #2563eb); border-radius: 0; }
     .ocr-result-display h3 { margin: 0 0 1rem 0; font-size: 1rem; }
     .ocr-result-display textarea { width: 100%; min-height: 400px; padding: 0.75rem; border: 1px solid var(--color-border-light, #ddd); border-radius: 4px; font-family: monospace; font-size: 0.9rem; resize: vertical; box-sizing: border-box; -webkit-overflow-scrolling: touch; }
     .ocr-result-display p.note { margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--color-text-sub, #666); }
