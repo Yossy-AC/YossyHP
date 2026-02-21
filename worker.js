@@ -365,9 +365,40 @@ function generateSystemPrompt(essayType, payload) {
       return generateTranslationPrompt(types, dialect);
     case 'diagram-essay':
       return generateDiagramEssayPrompt(types, dialect);
+    case 'diagram-ocr':
+      return generateOCRPrompt();
     default:
       return generateFreeEssayPrompt();
   }
+}
+
+// OCR専用プロンプト
+function generateOCRPrompt() {
+  return `# 画像のOCR読み取りタスク
+
+以下の形式でこの画像をOCRして、読み取り結果をテキストで出力してください。
+
+## 画像の分類
+[このセクションで、画像の種類を判定してください：表・棒グラフ・折れ線グラフ・円グラフ・その他]
+
+## タイトル
+[画像のタイトルや見出し]
+
+## 内容
+[表の場合] マークダウン形式で記載してください。セル区切りは | で表現してください。
+[グラフの場合] グラフの種類（棒グラフ・折れ線グラフ・円グラフなど）と、各データポイント・軸ラベル・凡例を記載してください。
+[その他] 画像に含まれるテキストや情報を正確に記載してください。
+
+## 単位・凡例・軸ラベル
+[あれば、詳しく記載してください]
+
+## 出典
+[あれば記載してください]
+
+## 読み取り不確実な部分
+[ぼやけていたり、確実でない部分があれば詳しく記載してください。確実でない部分がない場合は「なし」と記載してください]
+
+重要：出力は修正しやすいテキスト形式にしてください。不要な説明は最小限に。`;
 }
 // ===================================================
 // ユーザーメッセージ構築
@@ -403,6 +434,21 @@ function buildUserContent(essayType, payload) {
         },
       },
       { type: 'text', text },
+    ];
+  }
+  if (essayType === 'diagram-ocr') {
+    const { imageBase64 } = payload;
+    if (!imageBase64) throw new Error('imageBase64 is required');
+    return [
+      {
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: 'image/jpeg',
+          data: imageBase64.split(',')[1],
+        },
+      },
+      { type: 'text', text: 'この画像をOCRしてください。' },
     ];
   }
   throw new Error('Invalid essayType');
