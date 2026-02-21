@@ -489,6 +489,13 @@
       } else {
         textMode.classList.remove('active');
         imageMode.classList.add('active');
+        // 画像アップロードを選択時、アップロードエリアにスクロール
+        setTimeout(() => {
+          const uploadArea = document.getElementById(`${field}-upload-area`);
+          if (uploadArea) {
+            uploadArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
       }
 
       AppState[field].source = mode;
