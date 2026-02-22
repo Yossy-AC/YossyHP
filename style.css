@@ -995,32 +995,38 @@ footer {
 /* ---- Print ---- */
 
 @media print {
-  /* 背景色を印刷しない環境でも文字が見えるようにする */
+  /* 添削結果以外を非表示 */
+  header,
+  nav.site-nav,
+  footer,
+  .step-container,
+  .step-actions,
+  .usage-guide,
+  .essay-section > h2,
+  .essay-section > .section-desc,
+  .result-actions,
+  #history-section,
+  [onclick="resetAndStart()"] {
+    display: none !important;
+  }
+
+  /* 背景・影をクリア */
   * {
     color: #000 !important;
     background: #fff !important;
     box-shadow: none !important;
   }
 
-  header,
-  nav.site-nav {
-    border-bottom: 1px solid #000;
-  }
-
   /* 添削結果は全て印刷できるよう高さ制限を解除 */
   .result-area {
     max-height: none !important;
     overflow: visible !important;
-    border: 1px solid #ccc;
+    border: none !important;
+    padding: 0 !important;
   }
 
-  /* 送信ボタンは印刷不要 */
-  .btn-submit {
-    display: none !important;
-  }
-
-  footer {
-    border-top: 1px solid #000;
+  #result-view {
+    display: block !important;
   }
 }
 
