@@ -161,24 +161,21 @@ ${getGrammarChecklist()}`;
 ### ${stepNum}. Model Answers
 ${levelInstructions}`;
   }
-  if (customInstruction && customInstruction.trim()) {
-    prompt += `
-### ${stepNum + 0.5}. カスタム指定
-１つだけ提示する。上記に加えて、以下のカスタム指定に従うこと：
-${customInstruction.trim()}`;
-  }
   if (has('tips')) {
     stepNum++;
     prompt += `
 ### ${stepNum}. Tips for Next Time
 今回のミスから抽出した、**他の問題にも応用できる**アドバイス・汎用表現・注意点を3〜5つ紹介する。単なるミスの振り返りではなく、今後の英作文全般に活きる知識として提示する。`;
   }
+  if (customInstruction && customInstruction.trim()) {
+    prompt += `\n\n## 追加指示\n${customInstruction.trim()}`;
+  }
   return prompt;
 }
 // ===================================================
 // 和文英訳プロンプト（確定版）
 // ===================================================
-function generateTranslationPrompt(types = [], dialect = 'kansai', sections = []) {
+function generateTranslationPrompt(types = [], customInstruction = '', dialect = 'kansai', sections = []) {
   const hasAll = sections.length === 0;
   const has = (s) => hasAll || sections.includes(s);
   const role = getRoleText('生徒の和文英訳を添削し、学習に役立つプリントを作成します。', dialect);
@@ -290,12 +287,15 @@ ${levelInstructions}`;
 **＜次回への教訓＞**
 今回のミスから抽出した、**他の問題にも応用できる**アドバイス・汎用表現・注意点を3〜5つ紹介する。単なるミスの振り返りではなく、今後の和文英訳全般に活きる知識として提示する。`;
   }
+  if (customInstruction && customInstruction.trim()) {
+    prompt += `\n\n## 追加指示\n${customInstruction.trim()}`;
+  }
   return prompt;
 }
 // ===================================================
 // 図表付き英作文プロンプト（確定版）
 // ===================================================
-function generateDiagramEssayPrompt(types = [], dialect = 'kansai', sections = []) {
+function generateDiagramEssayPrompt(types = [], customInstruction = '', dialect = 'kansai', sections = []) {
   const hasAll = sections.length === 0;
   const has = (s) => hasAll || sections.includes(s);
   const role = getRoleText('生徒が書いた図表付き英作文を添削し、学習に役立つプリントを作成します。', dialect);
@@ -416,6 +416,9 @@ ${levelInstructions}`;
 **＜次回への教訓＞**
 今回のミスから抽出した、**他の問題にも応用できる**アドバイス・汎用表現・注意点を3〜5つ紹介する。単なるミスの振り返りではなく、今後の英作文全般に活きる知識として提示する。`;
   }
+  if (customInstruction && customInstruction.trim()) {
+    prompt += `\n\n## 追加指示\n${customInstruction.trim()}`;
+  }
   return prompt;
 }
 // ===================================================
@@ -429,9 +432,9 @@ function generateSystemPrompt(essayType, payload) {
     case 'free-essay':
       return generateFreeEssayPrompt(types, payload.customInstruction || '', dialect, sections);
     case 'translation':
-      return generateTranslationPrompt(types, dialect, sections);
+      return generateTranslationPrompt(types, payload.customInstruction || '', dialect, sections);
     case 'diagram-essay':
-      return generateDiagramEssayPrompt(types, dialect, sections);
+      return generateDiagramEssayPrompt(types, payload.customInstruction || '', dialect, sections);
     case 'diagram-ocr':
       return generateOCRPrompt();
     default:

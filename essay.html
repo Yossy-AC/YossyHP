@@ -289,6 +289,12 @@
 
       </div>
 
+      <details class="custom-instruction-details">
+        <summary>💬 追加指示（任意）</summary>
+        <p class="section-check-hint">※ 添削結果に悪影響を与える可能性も。「〇〇について重点的に指摘して」のような指示は（たぶん）有効（やと思う）。</p>
+        <textarea id="custom-instruction" class="essay-textarea" rows="3" placeholder="例：受動態の使い方について重点的に指摘してください"></textarea>
+      </details>
+
       <div class="step-actions">
         <button class="btn-action btn-submit" onclick="submitReview()" id="submit-btn">✏️ 添削を実行</button>
       </div>
@@ -346,7 +352,8 @@
       essayType: 'free-essay',
       levels: ['A'],
       sections: ['summary'],
-      dialect: 'kansai'
+      dialect: 'kansai',
+      customInstruction: ''
     };
 
     // 入力値取得（手入力またはOCR修正後）
@@ -694,12 +701,16 @@
       const dialectRadio = document.querySelector(`.essay-options.active input[name="dialect-${AppState.essayType}"]:checked`);
       AppState.dialect = dialectRadio?.value || 'kansai';
 
+      // 追加指示
+      AppState.customInstruction = document.getElementById('custom-instruction').value.trim();
+
       // Workerへのペイロード
       let payload = {
         essayType: AppState.essayType,
         types: AppState.levels,
         sections: AppState.sections,
-        dialect: AppState.dialect
+        dialect: AppState.dialect,
+        customInstruction: AppState.customInstruction
       };
 
       if (AppState.essayType === 'free-essay') {
@@ -814,10 +825,12 @@
       AppState.levels = ['A'];
       AppState.sections = ['summary'];
       AppState.dialect = 'kansai';
+      AppState.customInstruction = '';
 
       // フォームクリア
       document.getElementById('question-text-input').value = '';
       document.getElementById('answer-text-input').value = '';
+      document.getElementById('custom-instruction').value = '';
       updateWordCount();
       try { localStorage.removeItem('essayDraft'); } catch (e) { /* unavailable */ }
       const draftIndicator = document.getElementById('draft-indicator');
