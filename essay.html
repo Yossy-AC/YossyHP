@@ -88,15 +88,21 @@
         </div>
         <!-- 自由英作文オプション -->
         <div id="options-free-essay" class="essay-options active">
+          <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+            <span style="white-space: nowrap;">🗣️ 添削のトーン：</span>
+            <label><input type="radio" name="dialect-free" value="kansai" checked> 関西弁（明るく）</label>
+            <label><input type="radio" name="dialect-free" value="standard"> 標準語（丁寧に）</label>
+          </div>
+
           <h3>📋 出力セクションを選択（複数選択可）</h3>
+          <p class="section-check-hint">※ 選択数が多いほど処理時間が長くなります</p>
           <div class="section-checkboxes">
             <label><input type="checkbox" name="section" value="summary" checked> Summary</label>
-            <label><input type="checkbox" name="section" value="correction" checked> Correction & Notes</label>
+            <label><input type="checkbox" name="section" value="correction"> Correction & Notes</label>
             <label><input type="checkbox" name="section" value="steps"> Writing Steps</label>
             <label><input type="checkbox" name="section" value="models"> Model Answers</label>
             <label><input type="checkbox" name="section" value="tips"> Tips for Next Time</label>
           </div>
-          <p class="section-check-hint">※ 最低1つ選択してください。選択数が多いほど処理時間が長くなります</p>
 
           <div id="level-options-free-essay" class="level-options-wrapper">
             <h3>📚 解答例のレベルを選択（複数選択可）</h3>
@@ -113,27 +119,25 @@
             <label for="custom-instruction">💡 カスタム指定（任意）</label>
             <textarea id="custom-instruction" class="essay-textarea" rows="4" placeholder="例：段落構成について重点的に指導してください"></textarea>
           </div>
-
-          <div class="form-group">
-            <label>🗣️ 添削のトーン</label>
-            <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
-              <label><input type="radio" name="dialect-free" value="kansai" checked> 関西弁（明るく）</label>
-              <label><input type="radio" name="dialect-free" value="standard"> 標準語（丁寧に）</label>
-            </div>
-          </div>
         </div>
 
         <!-- 和文英訳オプション -->
         <div id="options-translation" class="essay-options">
+          <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+            <span style="white-space: nowrap;">🗣️ 添削のトーン：</span>
+            <label><input type="radio" name="dialect-trans" value="kansai" checked> 関西弁（明るく）</label>
+            <label><input type="radio" name="dialect-trans" value="standard"> 標準語（丁寧に）</label>
+          </div>
+
           <h3>📋 出力セクションを選択（複数選択可）</h3>
+          <p class="section-check-hint">※ 選択数が多いほど処理時間が長くなります</p>
           <div class="section-checkboxes">
             <label><input type="checkbox" name="section" value="summary" checked> Summary</label>
-            <label><input type="checkbox" name="section" value="correction" checked> Correction & Notes</label>
+            <label><input type="checkbox" name="section" value="correction"> Correction & Notes</label>
             <label><input type="checkbox" name="section" value="steps"> Writing Steps</label>
             <label><input type="checkbox" name="section" value="models"> Model Answers</label>
             <label><input type="checkbox" name="section" value="tips"> Tips for Next Time</label>
           </div>
-          <p class="section-check-hint">※ 最低1つ選択してください。選択数が多いほど処理時間が長くなります</p>
 
           <div id="level-options-translation" class="level-options-wrapper">
             <h3>📚 解答例のレベルを選択（複数選択可）</h3>
@@ -145,27 +149,25 @@
               <label><input type="checkbox" name="level" value="E"> E（別アプローチ版）</label>
             </div>
           </div>
-
-          <div class="form-group">
-            <label>🗣️ 添削のトーン</label>
-            <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
-              <label><input type="radio" name="dialect-trans" value="kansai" checked> 関西弁（明るく）</label>
-              <label><input type="radio" name="dialect-trans" value="standard"> 標準語（丁寧に）</label>
-            </div>
-          </div>
         </div>
 
         <!-- 図表付き英作文オプション -->
         <div id="options-diagram-essay" class="essay-options">
+          <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+            <span style="white-space: nowrap;">🗣️ 添削のトーン：</span>
+            <label><input type="radio" name="dialect-diagram" value="kansai" checked> 関西弁（明るく）</label>
+            <label><input type="radio" name="dialect-diagram" value="standard"> 標準語（丁寧に）</label>
+          </div>
+
           <h3>📋 出力セクションを選択（複数選択可）</h3>
+          <p class="section-check-hint">※ 選択数が多いほど処理時間が長くなります</p>
           <div class="section-checkboxes">
             <label><input type="checkbox" name="section" value="summary" checked> Summary</label>
-            <label><input type="checkbox" name="section" value="correction" checked> Correction & Notes</label>
+            <label><input type="checkbox" name="section" value="correction"> Correction & Notes</label>
             <label><input type="checkbox" name="section" value="steps"> Writing Steps</label>
             <label><input type="checkbox" name="section" value="models"> Model Answers</label>
             <label><input type="checkbox" name="section" value="tips"> Tips for Next Time</label>
           </div>
-          <p class="section-check-hint">※ 最低1つ選択してください。選択数が多いほど処理時間が長くなります</p>
 
           <div id="level-options-diagram-essay" class="level-options-wrapper">
             <h3>📚 解答例のレベルを選択（複数選択可）</h3>
@@ -179,14 +181,6 @@
           </div>
 
           <div class="hint">💡 図表が含まれる場合（または解答に図表の参照がある場合）、この選択肢を使用してください</div>
-
-          <div class="form-group">
-            <label>🗣️ 添削のトーン</label>
-            <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
-              <label><input type="radio" name="dialect-diagram" value="kansai" checked> 関西弁（明るく）</label>
-              <label><input type="radio" name="dialect-diagram" value="standard"> 標準語（丁寧に）</label>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -356,7 +350,7 @@
       images: { question: null, answer: null },
       essayType: 'free-essay',
       levels: ['A'],
-      sections: ['summary', 'correction'],
+      sections: ['summary'],
       customInstruction: '',
       dialect: 'kansai'
     };
@@ -829,7 +823,7 @@
       AppState.images = { question: null, answer: null };
       AppState.essayType = 'free-essay';
       AppState.levels = ['A'];
-      AppState.sections = ['summary', 'correction'];
+      AppState.sections = ['summary'];
       AppState.customInstruction = '';
       AppState.dialect = 'kansai';
 
