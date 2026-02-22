@@ -115,10 +115,6 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="custom-instruction">💡 カスタム指定（任意）</label>
-            <textarea id="custom-instruction" class="essay-textarea" rows="4" placeholder="例：段落構成について重点的に指導してください"></textarea>
-          </div>
         </div>
 
         <!-- 和文英訳オプション -->
@@ -350,7 +346,6 @@
       essayType: 'free-essay',
       levels: ['A'],
       sections: ['summary'],
-      customInstruction: '',
       dialect: 'kansai'
     };
 
@@ -695,10 +690,6 @@
       ).map(el => el.value);
       AppState.levels = selectedLevels.length > 0 ? selectedLevels : ['A'];
 
-      // カスタム指定（自由英作文）
-      const customInput = document.getElementById('custom-instruction');
-      AppState.customInstruction = customInput?.value.trim() || '';
-
       // 方言
       const dialectRadio = document.querySelector(`.essay-options.active input[name="dialect-${AppState.essayType}"]:checked`);
       AppState.dialect = dialectRadio?.value || 'kansai';
@@ -714,7 +705,6 @@
       if (AppState.essayType === 'free-essay') {
         payload.question = AppState.question.text;
         payload.answer = AppState.answer.text;
-        payload.customInstruction = AppState.customInstruction;
       } else if (AppState.essayType === 'translation') {
         payload.japaneseText = AppState.question.text;
         payload.answer = AppState.answer.text;
@@ -823,13 +813,11 @@
       AppState.essayType = 'free-essay';
       AppState.levels = ['A'];
       AppState.sections = ['summary'];
-      AppState.customInstruction = '';
       AppState.dialect = 'kansai';
 
       // フォームクリア
       document.getElementById('question-text-input').value = '';
       document.getElementById('answer-text-input').value = '';
-      document.getElementById('custom-instruction').value = '';
       updateWordCount();
       try { localStorage.removeItem('essayDraft'); } catch (e) { /* unavailable */ }
       const draftIndicator = document.getElementById('draft-indicator');
