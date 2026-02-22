@@ -125,6 +125,32 @@
       .level-checkboxes { flex-direction: column; gap: 0.75rem; }
       .ocr-result-display { margin-left: -1.5rem; margin-right: -1.5rem; padding-left: 0; padding-right: 0; }
     }
+
+    /* ===== 語数カウンター ===== */
+    .word-count { font-size: 0.85rem; color: var(--color-text-muted, #888); text-align: right; margin-top: 0.3rem; }
+
+    /* ===== 下書き保存インジケーター ===== */
+    .draft-indicator { font-size: 0.8rem; color: var(--color-text-muted, #888); margin-top: 0.2rem; min-height: 1.2em; }
+
+    /* ===== 結果操作ボタン ===== */
+    .result-actions { display: flex; gap: 0.75rem; margin: 0 0 1rem 0; flex-wrap: wrap; }
+    .btn-icon-action { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.2s; }
+    .btn-copy { background: #17a2b8; color: white; }
+    .btn-copy:hover { background: #138496; }
+    .btn-print { background: #6c757d; color: white; }
+    .btn-print:hover { background: #5a6268; }
+    .btn-cancel-stream { background: #dc3545; color: white; }
+    .btn-cancel-stream:hover { background: #c82333; }
+
+    /* ===== 使い方ガイド ===== */
+    .usage-guide { margin: 0.5rem 0 1.5rem 0; }
+    .usage-guide > summary { cursor: pointer; padding: 0.7rem 1rem; background: rgba(0,123,255,0.07); border: 1px solid rgba(0,123,255,0.2); border-radius: 6px; color: #007bff; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 0.5rem; }
+    .usage-guide > summary::-webkit-details-marker { display: none; }
+    .usage-guide > summary::before { content: '▶'; font-size: 0.7em; transition: transform 0.2s; }
+    .usage-guide[open] > summary::before { transform: rotate(90deg); }
+    .usage-guide-content { padding: 1.2rem 1.4rem; background: var(--color-surface, #f9f9f9); border: 1px solid var(--color-border, #ddd); border-top: none; border-radius: 0 0 6px 6px; font-size: 0.92rem; }
+    .usage-guide-content ol, .usage-guide-content ul { margin: 0.4rem 0 0.4rem 1.3rem; padding: 0; }
+    .usage-guide-content li { margin: 0.35rem 0; }
   </style>
 </head>
 <body>
@@ -154,6 +180,26 @@
     <section class="essay-section">
       <h2>英作文 AI添削</h2>
       <p class="section-desc">添削の「語数」は信じたらあかんﾃﾞ 「～は必須！」も信じていいかわからんﾃﾞ</p>
+
+      <!-- 使い方ガイド -->
+      <details class="usage-guide">
+        <summary>📖 使い方ガイド</summary>
+        <div class="usage-guide-content">
+          <ol>
+            <li><strong>問題文を入力</strong>（手入力 or 画像アップロード→OCR）</li>
+            <li><strong>あなたの解答を入力</strong>（同上）。語数カウンターで文字数確認</li>
+            <li><strong>問題タイプとレベルを選択</strong>して「添削を実行」</li>
+          </ol>
+          <p style="margin: 0.7rem 0 0.3rem;"><strong>💡 ヒント</strong></p>
+          <ul>
+            <li>下書きは自動保存されます（ページを離れても復元）</li>
+            <li>添削結果は📋コピー・🖨️印刷ができます</li>
+            <li>処理中に⏹中断ボタンで途中停止できます</li>
+            <li>レベルを複数選ぶほど処理時間が長くなります</li>
+            <li>添削の「語数カウント」と「～は必須」の指摘は参考程度に</li>
+          </ul>
+        </div>
+      </details>
 
       <!-- ===== ステップ1: 問題文入力 ===== -->
 
@@ -236,6 +282,8 @@
           <div class="form-group">
             <label for="answer-text-input">解答を入力</label>
             <textarea id="answer-text-input" class="essay-textarea" rows="10" placeholder="英作文（またはあなたの英訳）をここに入力してください…"></textarea>
+            <div id="word-count-display" class="word-count">語数: 0語</div>
+            <div id="draft-indicator" class="draft-indicator"></div>
           </div>
         </div>
 
@@ -370,12 +418,16 @@
       <div id="result-view" class="hidden">
         <div class="result-area">
           <h3>📝 添削結果</h3>
+          <div class="result-actions">
+            <button class="btn-icon-action btn-cancel-stream hidden" id="btn-cancel-stream" onclick="cancelStreaming()">⏹ 中断</button>
+            <button class="btn-icon-action btn-copy hidden" id="btn-copy-result" onclick="copyResult()">📋 コピー</button>
+            <button class="btn-icon-action btn-print hidden" id="btn-print-result" onclick="window.print()">🖨️ 印刷</button>
+          </div>
           <div id="result-content" class="result-content"></div>
         </div>
         <div style="text-align: center; margin: 2rem 0;">
           <button class="btn-action btn-next" onclick="resetAndStart()">別の問題を解く</button>
         </div>
-
       </div>
 
       <div id="history-section" class="hidden" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--color-border, #ddd);">
@@ -398,6 +450,12 @@
     // Cloudflare Worker URL
     // ===================================================
     const WORKER_URL = 'https://essay-proxy.yoshida-tom-ac.workers.dev';
+
+    // ===================================================
+    // グローバル変数
+    // ===================================================
+    let currentAbortController = null;
+    let draftSaveTimer = null;
 
     // ===================================================
     // 状態管理
@@ -836,11 +894,16 @@
       resultContent.innerHTML = '<p>処理中…</p>';
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
+      // 中断ボタンを表示
+      currentAbortController = new AbortController();
+      showCancelButton();
+
       try {
         const response = await fetch(WORKER_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          signal: currentAbortController.signal
         });
 
         if (!response.ok) {
@@ -880,14 +943,25 @@
         if (!fullText) {
           resultContent.innerHTML = '<p>エラー：添削結果を受け取れませんでした。</p>';
         } else {
-          // 履歴に保存
+          // 履歴に保存・下書きクリア
           saveToHistory(AppState.question.text, AppState.answer.text, resultContent.innerHTML, AppState.essayType);
+          localStorage.removeItem('essayDraft');
         }
 
       } catch (error) {
-        resultContent.innerHTML = `<p>エラーが発生しました: ${error.message}</p>`;
-        console.error('[Essay]', error);
+        if (error.name === 'AbortError') {
+          if (resultContent.innerHTML === '<p>処理中…</p>') {
+            resultContent.innerHTML = '<p style="color:var(--color-text-muted,#888);">（添削を中断しました）</p>';
+          } else {
+            resultContent.innerHTML += '<p style="color:var(--color-text-muted,#888); margin-top:1rem;">（添削を中断しました）</p>';
+          }
+        } else {
+          resultContent.innerHTML = `<p>エラーが発生しました: ${error.message}</p>`;
+          console.error('[Essay]', error);
+        }
       } finally {
+        currentAbortController = null;
+        showResultActions();
         btn.disabled = false;
         btn.textContent = '✏️ 添削を実行';
       }
@@ -909,6 +983,10 @@
       document.getElementById('question-text-input').value = '';
       document.getElementById('answer-text-input').value = '';
       document.getElementById('custom-instruction').value = '';
+      updateWordCount();
+      localStorage.removeItem('essayDraft');
+      const draftIndicator = document.getElementById('draft-indicator');
+      if (draftIndicator) draftIndicator.textContent = '';
 
       // 画像をクリア
       ['question', 'answer'].forEach(field => {
@@ -923,6 +1001,103 @@
       // ステップ1へ
       document.getElementById('result-view').classList.add('hidden');
       goToStep(1);
+    }
+
+    // ===================================================
+    // 語数カウンター
+    // ===================================================
+    function updateWordCount() {
+      const textarea = document.getElementById('answer-text-input');
+      const display = document.getElementById('word-count-display');
+      if (!textarea || !display) return;
+      const val = textarea.value.trim();
+      const count = val ? val.split(/\s+/).length : 0;
+      display.textContent = `語数: ${count}語`;
+    }
+
+    // ===================================================
+    // 下書き自動保存
+    // ===================================================
+    function scheduleDraftSave() {
+      clearTimeout(draftSaveTimer);
+      draftSaveTimer = setTimeout(() => {
+        const val = document.getElementById('answer-text-input').value;
+        if (val.trim()) {
+          localStorage.setItem('essayDraft', val);
+          const indicator = document.getElementById('draft-indicator');
+          if (indicator) {
+            indicator.textContent = '✓ 自動保存済み';
+            setTimeout(() => {
+              if (indicator.textContent === '✓ 自動保存済み') indicator.textContent = '';
+            }, 2000);
+          }
+        } else {
+          localStorage.removeItem('essayDraft');
+        }
+      }, 1000);
+    }
+
+    function restoreDraft() {
+      const saved = localStorage.getItem('essayDraft');
+      if (!saved) return;
+      const textarea = document.getElementById('answer-text-input');
+      if (!textarea) return;
+      textarea.value = saved;
+      updateWordCount();
+      const indicator = document.getElementById('draft-indicator');
+      if (indicator) indicator.textContent = '（前回の下書きを復元しました）';
+    }
+
+    // ===================================================
+    // 添削結果コピー
+    // ===================================================
+    function copyResult() {
+      const resultContent = document.getElementById('result-content');
+      const text = resultContent.innerText || resultContent.textContent;
+      const btn = document.getElementById('btn-copy-result');
+
+      const showSuccess = () => {
+        btn.textContent = '✅ コピー済み';
+        setTimeout(() => { btn.textContent = '📋 コピー'; }, 2000);
+      };
+
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(showSuccess).catch(() => alert('コピーに失敗しました。'));
+      } else {
+        // フォールバック（古いブラウザ向け）
+        const range = document.createRange();
+        range.selectNode(resultContent);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        try {
+          document.execCommand('copy');
+          window.getSelection().removeAllRanges();
+          showSuccess();
+        } catch (e) {
+          alert('コピーに失敗しました。');
+        }
+      }
+    }
+
+    // ===================================================
+    // ストリーミング中断
+    // ===================================================
+    function cancelStreaming() {
+      if (currentAbortController) {
+        currentAbortController.abort();
+      }
+    }
+
+    function showCancelButton() {
+      document.getElementById('btn-cancel-stream').classList.remove('hidden');
+      document.getElementById('btn-copy-result').classList.add('hidden');
+      document.getElementById('btn-print-result').classList.add('hidden');
+    }
+
+    function showResultActions() {
+      document.getElementById('btn-cancel-stream').classList.add('hidden');
+      document.getElementById('btn-copy-result').classList.remove('hidden');
+      document.getElementById('btn-print-result').classList.remove('hidden');
     }
 
     // ===================================================
@@ -1089,6 +1264,18 @@
       document.querySelectorAll('.mode-btn').forEach(btn => {
         btn.addEventListener('click', switchInputMode);
       });
+
+      // 解答テキストエリア：語数カウント＋下書き自動保存
+      const answerTextarea = document.getElementById('answer-text-input');
+      if (answerTextarea) {
+        answerTextarea.addEventListener('input', () => {
+          updateWordCount();
+          scheduleDraftSave();
+        });
+      }
+
+      // 下書きを復元
+      restoreDraft();
 
       // 履歴を表示
       displayHistory();
