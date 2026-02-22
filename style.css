@@ -1098,13 +1098,13 @@ footer {
 
 .hint { margin: 1rem 0; padding: 0.75rem; background: rgba(0,123,255,0.1); border-left: 3px solid #007bff; border-radius: 3px; font-size: 0.95rem; color: #0056b3; }
 
-.step-actions { display: flex; gap: 1rem; margin: 2rem 0; justify-content: space-between; }
+.step-actions { display: flex; gap: 1rem; margin: 2rem 0; justify-content: center; }
 .btn-action { padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: all 0.2s; }
 .btn-back { background: #6c757d; color: white; }
 .btn-back:hover { background: #5a6268; }
 .btn-next { background: #007bff; color: white; }
 .btn-next:hover { background: #0056b3; }
-.step-container .btn-submit { background: #28a745; color: white; }
+.step-container .btn-submit { background: #28a745; color: white; min-width: 180px; }
 .step-container .btn-submit:hover { background: #218838; }
 .step-container .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
 
