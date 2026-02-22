@@ -1086,6 +1086,12 @@ footer {
 .essay-options { display: none; margin: 1.5rem 0; padding: 1.5rem; background: var(--color-surface, #f9f9f9); border-radius: 6px; }
 .essay-options.active { display: block; }
 
+.section-checkboxes { display: flex; flex-wrap: wrap; gap: 1.5rem; margin: 1rem 0; }
+.section-checkboxes label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: normal; }
+.section-checkboxes input[type="checkbox"] { cursor: pointer; }
+.section-check-hint { font-size: 0.85rem; color: var(--color-text-muted, #888); margin-top: 0.5rem; }
+.level-options-wrapper { margin-top: 1.5rem; }
+
 .level-checkboxes { display: flex; flex-wrap: wrap; gap: 1.5rem; margin: 1rem 0; }
 .level-checkboxes label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: normal; }
 .level-checkboxes input[type="checkbox"] { cursor: pointer; }
@@ -1148,6 +1154,7 @@ footer {
   .type-tab { width: 100%; }
   .step-actions { flex-direction: column; }
   .btn-action { width: 100%; }
+  .section-checkboxes { flex-direction: column; gap: 0.75rem; }
   .level-checkboxes { flex-direction: column; gap: 0.75rem; }
   .ocr-result-display { margin-left: -1.5rem; margin-right: -1.5rem; padding-left: 0; padding-right: 0; }
 }

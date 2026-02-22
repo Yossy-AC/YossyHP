@@ -89,10 +89,13 @@ function getLevelInstructions(types) {
 // ===================================================
 // 自由英作文プロンプト（確定版）
 // ===================================================
-function generateFreeEssayPrompt(types = [], customInstruction = '', dialect = 'kansai') {
+function generateFreeEssayPrompt(types = [], customInstruction = '', dialect = 'kansai', sections = []) {
+  const hasAll = sections.length === 0;
+  const has = (s) => hasAll || sections.includes(s);
   const role = getRoleText('生徒が書いた英作文を添削し、学習に役立つプリントを作成します。', dialect);
   const levelInstructions = getLevelInstructions(types);
   const tone = getDialectTone(dialect);
+  let stepNum = 0;
   let prompt = `## 役割
 あなたは、${role}
 ## 目的
@@ -114,22 +117,32 @@ function generateFreeEssayPrompt(types = [], customInstruction = '', dialect = '
 - **トーン**：${tone}
 - **チャット**：次の入力を促す表現（例：「次は〜してみますか？」）は不要。
 - **語数**：語数には一切言及しない。
-## 実行手順（ステップバイステップで推論する）
-### 1. 総評
+## 実行手順（ステップバイステップで推論する）`;
+  if (has('summary')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Summary
 以下の観点で、解答の現状を端的に判定する。採点（"★☆☆" のような表現を含む）は行わない。
 - **達成度**：設問意図に対し、正しく答えているか。
 - **論理構成**：論理に矛盾がないか。
 - **課題**：致命的な誤りがないか。
-### 2. 内容・論理評価
 - 設問の意図に正しく答えているかを確認し、説明する。
 - 主張・根拠・結論のレベルで論理に矛盾や飛躍がないかを確認し、説明する。
 - 文章全体の論理展開（例：導入→本論→結論）が成立しているかを確認し、説明する。
 - 文と文の間に論理的断絶がないかを確認し、説明する。
-- 文章全体の説得力を確認し、説明する（具体例の有無、主張と根拠のバランス、読み手を納得させる構成・表現になっているかなど）。
-### 3. 添削・解説
+- 文章全体の説得力を確認し、説明する（具体例の有無、主張と根拠のバランス、読み手を納得させる構成・表現になっているかなど）。`;
+  }
+  if (has('correction')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Correction & Notes
 以下の観点で、**全て**のミスについて、位置を示し指摘し、正しい表現を示して解説する。表形式での出力はしない。
-${getGrammarChecklist()}
-### 4. 解答作成手順
+${getGrammarChecklist()}`;
+  }
+  if (has('steps')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Writing Steps
 以下の順で、模範的な解答作成のプロセスを示す。
 **① 設問の解釈：**
 設問・条件を読み、解答に求められている要素を端的に示す。
@@ -140,27 +153,38 @@ ${getGrammarChecklist()}
 **④ 英訳前の内容確認：**
 ゴールイメージを基に、文章の内容を日本語で提示する。
 **⑤ 解答例の提示：**
-上記④に基づいた解答例を示す。
-### 5. 参考用レベル別解答例
+上記④に基づいた解答例を示す。`;
+  }
+  if (has('models')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Model Answers
 ${levelInstructions}`;
+  }
   if (customInstruction && customInstruction.trim()) {
     prompt += `
-### 5.5. カスタム指定
+### ${stepNum + 0.5}. カスタム指定
 １つだけ提示する。上記に加えて、以下のカスタム指定に従うこと：
 ${customInstruction.trim()}`;
   }
-  prompt += `
-### 6. 次回への教訓
+  if (has('tips')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Tips for Next Time
 今回のミスから抽出した、**他の問題にも応用できる**アドバイス・汎用表現・注意点を3〜5つ紹介する。単なるミスの振り返りではなく、今後の英作文全般に活きる知識として提示する。`;
+  }
   return prompt;
 }
 // ===================================================
 // 和文英訳プロンプト（確定版）
 // ===================================================
-function generateTranslationPrompt(types = [], dialect = 'kansai') {
+function generateTranslationPrompt(types = [], dialect = 'kansai', sections = []) {
+  const hasAll = sections.length === 0;
+  const has = (s) => hasAll || sections.includes(s);
   const role = getRoleText('生徒の和文英訳を添削し、学習に役立つプリントを作成します。', dialect);
   const levelInstructions = getLevelInstructions(types);
   const tone = getDialectTone(dialect);
+  let stepNum = 0;
   let prompt = `## 役割
 あなたは、${role}
 ## 目的
@@ -180,7 +204,7 @@ function generateTranslationPrompt(types = [], dialect = 'kansai') {
 - 日本語の表面的な語句に引きずられた英訳をチェックする。
 - 下線部英訳の場合、下線部の外にある文脈（前後関係・主語・時制・指示語の指す内容など）を正しく読み取ったうえで訳せているかを必ず確認する。
 ## 出力形式
-- 各ステップを見出し（例：**1. 総評**）で分け、全体をMarkdownで整形する。
+- 各ステップを見出し（例：**1. Summary**）で分け、全体をMarkdownで整形する。
 - 表形式は禁止。
 - 解答例中の修正・改善箇所には**太字**を用いて視認性を高める。
 - 複数下線型の場合、下線部ごとに番号（下線部(1)、下線部(2)…）を付けて整理する。
@@ -190,29 +214,35 @@ function generateTranslationPrompt(types = [], dialect = 'kansai') {
 - **トーン**：${tone}
 - **チャット**：次の入力を促す表現（例：「次は〜してみますか？」）は不要。
 - **語数**：語数には一切言及しない。
-## 実行手順（ステップバイステップで推論する）
-### 0. 原文と設問の確認
+## 実行手順（ステップバイステップで推論する）`;
+  if (has('summary')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Summary
+**＜原文と設問の確認＞**
 - 出題タイプ（全文英訳型／単一下線型／複数下線型）を判定し、明示する。
 - 日本語原文の全文を確認する。
 - 下線部がある場合、各下線部の範囲を明示する。
 - 下線部の外にある文脈のうち、英訳に影響を与える要素（主語、時制、指示語の指す内容、話者の立場や状況など）を整理する。
-### 1. 総評
+**＜総評＞**
 以下の観点で、解答の現状を端的に判定する。採点（"★☆☆" のような表現を含む）は行わない。
 - **原文理解**：日本語原文の意味を正しく読み取れているか。
 - **英語の正確さ**：文法・語法上の誤りがないか。
 - **表現の自然さ**：直訳調になっていないか、英語として自然か。
 - **課題**：致命的な誤りがないか。
-### 2. 原文解釈の評価
-和文英訳の成否は「英語力」以前に「日本語の読解力」で決まることが多い。このステップでは、英語の正誤を論じる前に、原文の解釈が正確かどうかを評価する。
-**＜日本語の読み取り＞**
+**＜原文解釈の評価＞**
+和文英訳の成否は「英語力」以前に「日本語の読解力」で決まることが多い。英語の正誤を論じる前に、原文の解釈が正確かどうかを評価する。
 - 原文の意味を正確に理解できているかを確認する。
 - 日本語特有のあいまいな表現（主語の省略、指示語、多義語、慣用表現など）を正しく解釈できているかを確認する。
 - 文脈から補うべき情報（省略された主語、時制の手がかり、指示語の指す内容など）を正しく補えているかを確認する。
-**＜訳出方針の妥当性＞**
 - 直訳では意味が通じない箇所を、適切に意訳・言い換えできているかを確認する。
 - 日本語の構造にとらわれず、英語として自然な語順・構文に再構成できているかを確認する。
-- 不要な情報の追加や、必要な情報の欠落がないかを確認する。
-### 3. 添削・解説
+- 不要な情報の追加や、必要な情報の欠落がないかを確認する。`;
+  }
+  if (has('correction')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Correction & Notes
 以下の観点で、**全て**のミスについて、位置を示し指摘し、正しい表現を示して解説する。表形式での出力はしない。
 複数下線型の場合は、下線部ごとに分けて解説する。
 ${getGrammarChecklist()}
@@ -221,8 +251,12 @@ ${getGrammarChecklist()}
 - 日本語では自然だが英語では不自然な主語の選択（例：無生物主語にすべき箇所を人間主語にしているなど）
 - 日本語の慣用表現・比喩表現の不適切な直訳
 - 文脈から読み取るべき時制・主語・指示内容の取り違え
-- 一つの日本語に複数の英訳が考えられる場合の、文脈に合わない語義の選択
-### 4. 解答作成手順
+- 一つの日本語に複数の英訳が考えられる場合の、文脈に合わない語義の選択`;
+  }
+  if (has('steps')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Writing Steps
 以下の順で、模範的な解答作成のプロセスを示す。複数下線型の場合は、下線部ごとにこのプロセスを繰り返す。
 **① 原文の分析：**
 日本語原文を読み、英訳の際に注意すべきポイント（あいまいな表現、省略された主語、慣用表現、訳しにくい箇所など）を洗い出す。
@@ -233,10 +267,19 @@ ${getGrammarChecklist()}
 **④ 英訳前の内容確認：**
 上記①②③に基づき、英訳しやすいよう再構成した日本語を提示する。
 **⑤ 解答例の提示：**
-上記④に基づいた解答例を示す。
-### 5. 参考用レベル別解答例
-${levelInstructions}
-### 6. 和文英訳で使えるテクニック集
+上記④に基づいた解答例を示す。`;
+  }
+  if (has('models')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Model Answers
+${levelInstructions}`;
+  }
+  if (has('tips')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Tips for Next Time
+**＜和文英訳で使えるテクニック集＞**
 今回の問題に関連する、和文英訳全般で応用できるテクニックを3つ程度紹介する。以下のカテゴリから、今回の問題で特に役立つものを選定する。
 - **主語の転換**：日本語と英語で最適な主語が異なる場合の対処法（例：「〜が気になる」→ 物を主語にして "... bothers me"）
 - **動詞の転換**：日本語の動詞をそのまま訳さず、英語らしい動詞に置き換える方法（例：「夢を持つ」→ "dream of ..." ）
@@ -244,17 +287,21 @@ ${levelInstructions}
 - **構文の組み替え**：日本語の語順・構造を英語の自然な語順に再編する方法
 - **あいまい表現への対処**：省略された主語の補い方、指示語の処理、多義語の文脈判断
 - **訳しにくい日本語の攻略**：慣用句・擬態語・「〜的」「〜性」などの抽象表現への対処法
-### 7. 次回への教訓
+**＜次回への教訓＞**
 今回のミスから抽出した、**他の問題にも応用できる**アドバイス・汎用表現・注意点を3〜5つ紹介する。単なるミスの振り返りではなく、今後の和文英訳全般に活きる知識として提示する。`;
+  }
   return prompt;
 }
 // ===================================================
 // 図表付き英作文プロンプト（確定版）
 // ===================================================
-function generateDiagramEssayPrompt(types = [], dialect = 'kansai') {
+function generateDiagramEssayPrompt(types = [], dialect = 'kansai', sections = []) {
+  const hasAll = sections.length === 0;
+  const has = (s) => hasAll || sections.includes(s);
   const role = getRoleText('生徒が書いた図表付き英作文を添削し、学習に役立つプリントを作成します。', dialect);
   const levelInstructions = getLevelInstructions(types);
   const tone = getDialectTone(dialect);
+  let stepNum = 0;
   let prompt = `## 役割
 あなたは、${role}
 ## 目的
@@ -270,14 +317,13 @@ function generateDiagramEssayPrompt(types = [], dialect = 'kansai') {
 ## 図表データの取り扱い
 - ユーザーが画像として図表を貼り付けた場合は、OCRにより数値・項目名・単位・出典などを正確に読み取る。
 - ユーザーがテキストデータとして図表を貼り付けた場合は、その内容をそのまま使用する。
-- 読み取り結果は「ステップ0. 図表データの確認」として出力する。詳細はステップ0を参照。
 ## 指導方針
 - 華麗な英語よりも**減点されない英語**を最優先とする。
 - 背伸びした語彙・構文で失点するより、確実に書ける表現で得点を確保する戦略を徹底する。
 - 文法上の誤り・論理の甘さは、軽微なものも含めて全て指摘する。
 - 図表データの誤読・読み落としは、減点に直結する重大なミスとして扱う。
 ## 出力形式
-- 各ステップを見出し（例：**0. 図表データの確認**）で分け、全体をMarkdownで整形する。
+- 各ステップを見出し（例：**1. Summary**）で分け、全体をMarkdownで整形する。
 - 表形式は禁止。
 - 解答例中の修正・改善箇所には**太字**を用いて視認性を高める。
 ## 制約条件
@@ -286,44 +332,56 @@ function generateDiagramEssayPrompt(types = [], dialect = 'kansai') {
 - **トーン**：${tone}
 - **チャット**：次の入力を促す表現（例：「次は〜してみますか？」）は不要。
 - **語数**：語数には一切言及しない。
-## 実行手順（ステップバイステップで推論する）
-### 0. 図表データの確認
+## 実行手順（ステップバイステップで推論する）`;
+  if (has('summary')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Summary
+**＜図表データの確認＞**
 - 図表の種類（棒グラフ・折れ線グラフ・円グラフ・表など）を特定する。
 - 図表のタイトル、軸ラベル、単位、凡例、出典など、読み取れる情報を全て列挙する。
 - 主要なデータ（数値・割合・順位など）を正確に書き出す。
 - 読み取りに不確実な箇所がある場合は「※読み取り不確実」と明記する。
 - 設問タイプ（事実描写型／意見論述型）を判定し、明示する。
-### 1. 総評
+**＜総評＞**
 以下の観点で、解答の現状を端的に判定する。採点（"★☆☆" のような表現を含む）は行わない。
 - **図表の活用**：図表データを正確に読み取り、解答に適切に反映できているか。
 - **達成度**：設問意図に対し、正しく答えているか。
 - **論理構成**：論理に矛盾がないか。
 - **課題**：致命的な誤りがないか。
-### 2. 内容・論理評価
-**＜図表の読み取り評価＞**（必ず実行）
+**＜内容・論理評価＞**
+**図表の読み取り評価**（必ず実行）
 - 図表データの読み取りが正確かを確認し、説明する（数値の誤読、傾向の誤認、単位の取り違えなど）。
 - 図表から読み取るべき重要なポイント（顕著な傾向・変化・差異など）に言及できているかを確認し、説明する。
 - 図表データの引用方法が適切かを確認し、説明する（曖昧すぎる言及、データの過度な羅列など）。
-**＜事実描写型の場合＞**
+**事実描写型の場合**
 - 客観的事実の記述にとどまっているかを確認する（不要な意見や推測が混入していないか）。
 - 複数の事実を挙げている場合、それらの間に論理的なつながりがあるかを確認する。
-**＜意見論述型の場合＞**
+**意見論述型の場合**
 - 図表の内容と意見の間に論理的なつながりがあるかを確認する（図表を無視した意見になっていないか）。
 - 主張・根拠・結論のレベルで論理に矛盾や飛躍がないかを確認し、説明する。
 - 文章全体の論理展開（例：図表への言及→主張→根拠→結論）が成立しているかを確認し、説明する。
-**＜共通＞**
+**共通**
 - 設問の意図に正しく答えているかを確認し、説明する。
 - 文と文の間に論理的断絶がないかを確認し、説明する。
-- 文章全体の説得力を確認し、説明する。
-### 3. 添削・解説
+- 文章全体の説得力を確認し、説明する。`;
+  }
+  if (has('correction')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Correction & Notes
 以下の観点で、**全て**のミスについて、位置を示し指摘し、正しい表現を示して解説する。表形式での出力はしない。
 ${getGrammarChecklist()}
 **図表関連の表現：**
 - 数値・割合の示し方の誤り（例：percent / percentageの混同、前置詞の誤りなど）
 - 増減・変化を表す表現の誤り（例：increase / decrease / remain の用法）
 - 比較表現の誤り（例：比較級・最上級の形、比較対象の不明確さ）
-- グラフ特有の表現の誤用（例：according to the graph, as shown in the table など）
-### 4. 解答作成手順
+- グラフ特有の表現の誤用（例：according to the graph, as shown in the table など）`;
+  }
+  if (has('steps')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Writing Steps
 以下の順で、模範的な解答作成のプロセスを示す。
 **① 設問と図表の解釈：**
 設問タイプ（事実描写型／意見論述型）を踏まえ、設問・条件・図表を読み、解答に求められている要素を端的に示す。
@@ -336,18 +394,28 @@ ${getGrammarChecklist()}
 **④ 英訳前の内容確認：**
 ゴールイメージを基に、文章の内容を日本語で提示する。
 **⑤ 解答例の提示：**
-上記④に基づいた解答例を示す。
-### 5. 参考用レベル別解答例
-${levelInstructions}
-### 6. 図表問題で使える表現集
+上記④に基づいた解答例を示す。`;
+  }
+  if (has('models')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Model Answers
+${levelInstructions}`;
+  }
+  if (has('tips')) {
+    stepNum++;
+    prompt += `
+### ${stepNum}. Tips for Next Time
+**＜図表問題で使える表現集＞**
 今回の問題に関連する、図表付き英作文で汎用的に使える表現を5つ程度紹介する。以下のカテゴリから、今回の設問タイプや図表の種類に合わせて選定する。
 - 図表への導入表現（例：According to the graph, ...）
 - 増加・減少・変化を表す表現
 - 比較・対比の表現
 - 割合・数値を示す表現
 - 事実から意見へつなぐ表現（意見論述型の場合）
-### 7. 次回への教訓
+**＜次回への教訓＞**
 今回のミスから抽出した、**他の問題にも応用できる**アドバイス・汎用表現・注意点を3〜5つ紹介する。単なるミスの振り返りではなく、今後の英作文全般に活きる知識として提示する。`;
+  }
   return prompt;
 }
 // ===================================================
@@ -356,13 +424,14 @@ ${levelInstructions}
 function generateSystemPrompt(essayType, payload) {
   const dialect = payload.dialect || 'kansai';
   const types = payload.types || [];
+  const sections = payload.sections || [];
   switch (essayType) {
     case 'free-essay':
-      return generateFreeEssayPrompt(types, payload.customInstruction || '', dialect);
+      return generateFreeEssayPrompt(types, payload.customInstruction || '', dialect, sections);
     case 'translation':
-      return generateTranslationPrompt(types, dialect);
+      return generateTranslationPrompt(types, dialect, sections);
     case 'diagram-essay':
-      return generateDiagramEssayPrompt(types, dialect);
+      return generateDiagramEssayPrompt(types, dialect, sections);
     case 'diagram-ocr':
       return generateOCRPrompt();
     default:
