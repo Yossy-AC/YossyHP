@@ -3,7 +3,8 @@
   const KEY = 'theme';
 
   function saved() {
-    return localStorage.getItem(KEY) || 'light';
+    try { return localStorage.getItem(KEY) || 'light'; }
+    catch (e) { return 'light'; }
   }
 
   function apply(theme) {
@@ -14,7 +15,7 @@
 
   function toggle() {
     const next = saved() === 'dark' ? 'light' : 'dark';
-    localStorage.setItem(KEY, next);
+    try { localStorage.setItem(KEY, next); } catch (e) { /* unavailable */ }
     apply(next);
   }
 
