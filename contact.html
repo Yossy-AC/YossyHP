@@ -114,32 +114,73 @@
 
   <script src="theme.js"></script>
   <script>
-    document.getElementById('contact-form').addEventListener('submit', function(e) {
-      e.preventDefault();
+    const WORKER_URL = 'https://essay-proxy.yoshida-tom-ac.workers.dev';
 
-      // フォーム値を取得
-      const formData = {
-        name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
-        school: document.getElementById('school').value,
-        grade: document.getElementById('grade').value,
-        university: document.getElementById('university').value,
-        subject: document.getElementById('subject').value,
-        message: document.getElementById('message').value,
-        timestamp: new Date().toISOString()
-      };
+    console.log('[Contact Form] Script loaded, initializing event listener...');
 
-      // ブラウザコンソールに出力（テスト用）
-      console.log('📬 新しいお便りが届きました:');
-      console.log(formData);
+    const contactForm = document.getElementById('contact-form');
+    if (!contactForm) {
+      console.error('[Contact Form] ERROR: contact-form element not found!');
+    } else {
+      console.log('[Contact Form] contact-form element found, attaching submit listener');
 
-      // フォームを非表示にしてメッセージを表示
-      document.getElementById('contact-form').style.display = 'none';
-      document.getElementById('success-message').hidden = false;
+      contactForm.addEventListener('submit', async function(e) {
+        console.log('[Contact Form] Submit event fired');
+        e.preventDefault();
 
-      // ページの上部にスクロール
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+        const submitBtn = document.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = '📬 送信中…';
+
+        // フォーム値を取得
+        const formData = {
+          essayType: 'contact-form',
+          name: document.getElementById('name').value,
+          email: document.getElementById('email').value,
+          school: document.getElementById('school').value,
+          grade: document.getElementById('grade').value,
+          university: document.getElementById('university').value,
+          subject: document.getElementById('subject').value,
+          message: document.getElementById('message').value,
+        };
+
+        console.log('[Contact Form] Form data:', formData);
+        console.log('[Contact Form] Sending POST to:', WORKER_URL);
+
+        try {
+          // Worker に POST リクエスト
+          const response = await fetch(WORKER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+
+          console.log('[Contact Form] Response received:', response.status, response.statusText);
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'お便りの送信に失敗しました');
+          }
+
+          const result = await response.json();
+          console.log('✅ GitHub Issue 作成成功:', result);
+
+          // フォームを非表示にしてメッセージを表示
+          document.getElementById('contact-form').style.display = 'none';
+          document.getElementById('success-message').hidden = false;
+
+          // ページの上部にスクロール
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        } catch (error) {
+          console.error('❌ エラー:', error.message);
+          alert(`送信に失敗しました:\n${error.message}`);
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      });
+    }
   </script>
 
 </body>

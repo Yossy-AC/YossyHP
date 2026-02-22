@@ -381,6 +381,60 @@ function generateOCRPrompt() {
 - 不要な説明・コメント・解釈は一切加えないこと。画像の中身だけを忠実に出力すること。`;
 }
 // ===================================================
+// GitHub Issues 投稿
+// ===================================================
+async function createGitHubIssue(payload, env) {
+  const { name, email, school, grade, university, subject, message } = payload;
+
+  if (!message || !message.trim()) {
+    throw new Error('メッセージ内容は必須です');
+  }
+
+  // Issue のタイトルと本文を作成
+  const issueTitle = subject ? `[お便り] ${subject}` : '[お便り] フォーム送信';
+  const issueBody = `## 送信者情報
+- **お名前**: ${name || '(記入なし)'}
+- **メールアドレス**: ${email || '(記入なし)'}
+- **高校名**: ${school || '(記入なし)'}
+- **学年**: ${grade || '(記入なし)'}
+- **志望大学**: ${university || '(記入なし)'}
+
+## メッセージ内容
+${message}
+
+---
+*このIssueは contact.html のお便りフォームから自動投稿されました*`;
+
+  const response = await fetch('https://api.github.com/repos/Yossy-AC/YossyHP/issues', {
+    method: 'POST',
+    headers: {
+      'Authorization': `token ${env.GITHUB_TOKEN}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+      'User-Agent': 'YossyHP-Contact-Form',
+    },
+    body: JSON.stringify({
+      title: issueTitle,
+      body: issueBody,
+      labels: ['お便り'],
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    console.error('[GitHub API Error]', error);
+    throw new Error('GitHubへの投稿に失敗しました');
+  }
+
+  const data = await response.json();
+  return {
+    success: true,
+    issueNumber: data.number,
+    issueUrl: data.html_url,
+  };
+}
+
+// ===================================================
 // ユーザーメッセージ構築
 // ===================================================
 function buildUserContent(essayType, payload) {
@@ -479,6 +533,25 @@ export default {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': ALLOWED_ORIGIN },
       });
     }
+
+    // GitHub Issues 投稿処理（お便りフォーム）
+    if (essayType === 'contact-form') {
+      try {
+        const result = await createGitHubIssue(payload, env);
+        return new Response(JSON.stringify(result), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': ALLOWED_ORIGIN },
+        });
+      } catch (e) {
+        console.error('[Worker] GitHub Issue creation error:', e.message);
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': ALLOWED_ORIGIN },
+        });
+      }
+    }
+
+    // 英作文添削処理
     let userContent;
     try {
       userContent = buildUserContent(essayType, payload);
