@@ -61,57 +61,8 @@
             <th></th>
           </tr>
         </thead>
-        <tbody>
-          <!-- ===================================================
-               ファイルを追加するときはここにtrを追加してください。
-               例:
-               <tr>
-                 <td><span class="icon icon-pdf">PDF</span> sample.pdf</td>
-                 <td>PDFファイル</td>
-                 <td>1.2 MB</td>
-                 <td><a class="btn-download" href="files/sample.pdf" download>ダウンロード</a></td>
-               </tr>
-               =================================================== -->
-
-          <!--
-          <tr>
-            <td><span class="icon icon-pdf">PDF</span> サンプル資料.pdf</td>
-            <td>PDFファイル</td>
-            <td>500 KB</td>
-            <td><a class="btn-download" href="files/サンプル資料.pdf" download>ダウンロード</a></td>
-          </tr>
-          <tr>
-            <td><span class="icon icon-word">DOC</span> レポート.docx</td>
-            <td>Wordファイル</td>
-            <td>120 KB</td>
-            <td><a class="btn-download" href="files/レポート.docx" download>ダウンロード</a></td>
-          </tr>
-          <tr>
-            <td><span class="icon icon-excel">XLS</span> データ.xlsx</td>
-            <td>Excelファイル</td>
-            <td>80 KB</td>
-            <td><a class="btn-download" href="files/データ.xlsx" download>ダウンロード</a></td>
-          </tr>
-          <tr>
-            <td><span class="icon icon-image">IMG</span> ペンギン.jpg</td>
-            <td>画像ファイル</td>
-            <td>2.1 MB</td>
-            <td><a class="btn-download" href="files/ペンギン.jpg" download>ダウンロード</a></td>
-          </tr>
-          -->
-
-          <tr>
-            <td><span class="icon icon-pdf">PDF</span> 学習指導要領（英語版）_20230328-mxt_kyoiku02_100014466_002.pdf</td>
-            <td>PDFファイル</td>
-            <td>231 KB</td>
-            <td><a class="btn-download" href="files/%E5%AD%A6%E7%BF%92%E6%8C%87%E5%B0%8E%E8%A6%81%E9%A0%98%EF%BC%88%E8%8B%B1%E8%AA%9E%E7%89%88%EF%BC%89_20230328-mxt_kyoiku02_100014466_002.pdf" download="学習指導要領（英語版）_20230328-mxt_kyoiku02_100014466_002.pdf">ダウンロード</a></td>
-          </tr>
-          <tr>
-            <td><span class="icon icon-pdf">PDF</span> 25冬II_難関大二次対策英語_問題冊子_板書案.pdf</td>
-            <td>PDFファイル</td>
-            <td>4 MB</td>
-            <td><a class="btn-download" href="files/25%E5%86%ACII_%E9%9B%A3%E9%96%A2%E5%A4%A7%E4%BA%8C%E6%AC%A1%E5%AF%BE%E7%AD%96%E8%8B%B1%E8%AA%9E_%E5%95%8F%E9%A1%8C%E5%86%8A%E5%AD%90_%E6%9D%BF%E6%9B%B8%E6%A1%88.pdf" download="25冬II_難関大二次対策英語_問題冊子_板書案.pdf">ダウンロード</a></td>
-          </tr>
+        <tbody id="file-list">
+          <!-- files.json から自動生成されます -->
         </tbody>
       </table>
     </section>
@@ -122,5 +73,61 @@
   </footer>
 
   <script src="theme.js"></script>
+  <script>
+    // ファイルを追加するときは files.json だけ編集してください
+    const TYPE_MAP = {
+      pdf:   { icon: 'icon-pdf',   label: 'PDF', desc: 'PDFファイル' },
+      word:  { icon: 'icon-word',  label: 'DOC', desc: 'Wordファイル' },
+      excel: { icon: 'icon-excel', label: 'XLS', desc: 'Excelファイル' },
+      image: { icon: 'icon-image', label: 'IMG', desc: '画像ファイル' },
+    };
+
+    fetch('files.json')
+      .then(function(res) { return res.json(); })
+      .then(function(files) {
+        const tbody = document.getElementById('file-list');
+        files.forEach(function(file) {
+          const type = TYPE_MAP[file.type] || { icon: 'icon-pdf', label: 'FILE', desc: 'ファイル' };
+
+          const tr = document.createElement('tr');
+
+          const tdName = document.createElement('td');
+          const span = document.createElement('span');
+          span.className = 'icon ' + type.icon;
+          span.textContent = type.label;
+          tdName.appendChild(span);
+          tdName.appendChild(document.createTextNode('\u00a0' + file.name));
+
+          const tdType = document.createElement('td');
+          tdType.textContent = type.desc;
+
+          const tdSize = document.createElement('td');
+          tdSize.textContent = file.size;
+
+          const tdBtn = document.createElement('td');
+          const a = document.createElement('a');
+          a.className = 'btn-download';
+          a.href = 'files/' + encodeURIComponent(file.name);
+          a.download = file.name;
+          a.textContent = 'ダウンロード';
+          tdBtn.appendChild(a);
+
+          tr.appendChild(tdName);
+          tr.appendChild(tdType);
+          tr.appendChild(tdSize);
+          tr.appendChild(tdBtn);
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(function() {
+        const tbody = document.getElementById('file-list');
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 4;
+        td.textContent = 'ファイルリストの読み込みに失敗しました。';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      });
+  </script>
 </body>
 </html>
