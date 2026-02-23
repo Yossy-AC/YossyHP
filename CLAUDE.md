@@ -42,12 +42,15 @@ YossyHP/
 ├── contact.html          # お問い合わせフォームページ
 ├── style.css             # All styles (dark/light theme via data-theme)
 ├── theme.js              # Dark mode toggle logic
-├── worker.js             # Cloudflare Worker source (AI proxy — deploy to Cloudflare)
+├── worker.js             # Cloudflare Worker source (AI proxy — auto-deployed via GitHub Actions)
+├── wrangler.toml         # Wrangler configuration for Cloudflare Workers
 ├── files.json            # File listing data for download page
 ├── files/                # Downloadable files go here
 │   └── .gitkeep          # Keeps the empty directory tracked by git
 ├── og-image.svg          # OGP image
 ├── penguin.svg           # Penguin mascot graphic
+├── .github/workflows/
+│   └── deploy-worker.yml # GitHub Actions: auto-deploys worker.js to Cloudflare on push to main
 ├── README.md             # Repository description
 └── CLAUDE.md             # This file
 ```
@@ -61,7 +64,7 @@ Key files:
 - `essay.html` — UI; contains `WORKER_URL` constant pointing to the deployed Worker
 - `worker.js` — Cloudflare Worker source; holds prompts and API call logic
 
-When modifying AI behaviour (prompts, models, output format), edit `worker.js` and redeploy to Cloudflare.
+When modifying AI behaviour (prompts, models, output format), edit `worker.js` — pushing to `main` triggers automatic deployment to Cloudflare via GitHub Actions.
 When modifying UI only, edit `essay.html`.
 
 ## How to Add a Downloadable File
@@ -106,9 +109,14 @@ No build step is needed — GitHub Pages serves HTML files directly.
 
 ## Cloudflare Worker Deployment
 
-`worker.js` must be deployed to Cloudflare Workers separately (see instructions at the top of the file).
-After deploying, set the `WORKER_URL` constant in `essay.html` to the Worker's URL.
-The Anthropic API key is stored as a Cloudflare Worker secret variable (`ANTHROPIC_API_KEY`) — never commit it to the repository.
+`worker.js` is **automatically deployed** to Cloudflare Workers via GitHub Actions (`.github/workflows/deploy-worker.yml`) whenever `worker.js`, `wrangler.toml`, or the workflow file itself is pushed to `main`.
+
+- Worker URL: `https://essay-checker.yoshida-tom-ac.workers.dev`
+- `WORKER_URL` constant in `essay.html` must point to this URL.
+- The following secrets must be set in GitHub → Settings → Secrets → Actions:
+  - `CLOUDFLARE_API_TOKEN` — Cloudflare API token with Workers Scripts: Edit permission
+  - `CLOUDFLARE_ACCOUNT_ID` — Cloudflare account ID (`80e2e4ead37cc33a4da282b898684909`)
+- The Anthropic API key is stored as a Cloudflare Worker secret variable (`ANTHROPIC_API_KEY`) — never commit it to the repository.
 
 ## Conventions for AI Assistants
 
